@@ -46,7 +46,7 @@ public class Jython extends Builder {
         this.command = command;
     }
 
-    protected String getContents() {
+    public String getCommand() {
         return command;
     }
 
@@ -82,7 +82,7 @@ public class Jython extends Builder {
 
         interp.setOut(listener.getLogger());
         interp.setErr(listener.getLogger());
-        interp.exec(this.getContents());
+        interp.exec(this.getCommand());
         interp.cleanup();
 
         build.setResult(Result.SUCCESS);
