@@ -76,12 +76,14 @@ public class Jython extends Builder {
     }
 
     public boolean perform(Build build, Launcher launcher, BuildListener listener)  throws IOException, InterruptedException {
-        PySystemState.initialize();
-        PythonInterpreter interp = new PythonInterpreter();
+        PySystemState sys = new PySystemState();
+        sys.setCurrentWorkingDir(build.getProject().getWorkspace().getRemote());
+        PythonInterpreter interp = new PythonInterpreter(null, sys);
 
         interp.setOut(listener.getLogger());
         interp.setErr(listener.getLogger());
         interp.exec(this.getContents());
+        interp.cleanup();
 
         build.setResult(Result.SUCCESS);
         return true;
