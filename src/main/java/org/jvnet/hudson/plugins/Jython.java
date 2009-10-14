@@ -1,25 +1,18 @@
 package org.jvnet.hudson.plugins;
 
-import hudson.FilePath;
+import hudson.Extension;
 import hudson.Launcher;
-import hudson.util.FormFieldValidator;
-import hudson.model.Build;
+import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.model.Result;
 import hudson.tasks.Builder;
-import hudson.tasks.CommandInterpreter;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-import org.kohsuke.stapler.QueryParameter;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 
 import org.python.core.PySystemState;
-import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
 /**
@@ -34,7 +27,7 @@ import org.python.util.PythonInterpreter;
  * to remember the configuration.
  *
  * <p>
- * When a build is performed, the {@link #perform(Build, Launcher, BuildListener)} method
+ * When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)} method
  * will be invoked. 
  *
  * @author R. Tyler Ballance
@@ -50,17 +43,13 @@ public class Jython extends Builder {
         return command;
     }
 
-    public Descriptor<Builder> getDescriptor() {
-        return DESCRIPTOR;
-    }
-
-    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
-
+    @Extension
     public static final class DescriptorImpl extends Descriptor<Builder> {
-        private DescriptorImpl() {
+        public DescriptorImpl() {
             super(Jython.class);
         }
 
+        @Override
         public Builder newInstance(StaplerRequest req, JSONObject formData) {
             return new Jython(formData.getString("jython"));
         }
@@ -75,9 +64,9 @@ public class Jython extends Builder {
         }
     }
 
-    public boolean perform(Build build, Launcher launcher, BuildListener listener)  throws IOException, InterruptedException {
+    public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener)  throws IOException, InterruptedException {
         PySystemState sys = new PySystemState();
-        sys.setCurrentWorkingDir(build.getProject().getWorkspace().getRemote());
+        sys.setCurrentWorkingDir(build.getWorkspace().getRemote());
         PythonInterpreter interp = new PythonInterpreter(null, sys);
 
         interp.setOut(listener.getLogger());
