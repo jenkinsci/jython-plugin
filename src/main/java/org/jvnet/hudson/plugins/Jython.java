@@ -11,11 +11,10 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.util.Hashtable;
 import java.util.Map;
+
 import org.python.core.PyDictionary;
 import org.python.core.PyString;
-
 import org.python.core.PySystemState;
 import org.python.util.PythonInterpreter;
 
