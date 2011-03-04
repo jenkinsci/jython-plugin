@@ -2,5 +2,6 @@
   This view is used to render the plugin list page.
 -->
 <div>
-  Adds the ability to execute Jython script from within the JVM.
+  Adds the ability to execute Jython script as a build step in free-style
+  software projects from within the JVM.
 </div>
