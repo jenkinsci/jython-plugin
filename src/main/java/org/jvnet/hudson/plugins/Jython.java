@@ -11,7 +11,10 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
+import java.util.Map;
 
+import org.python.core.PyDictionary;
+import org.python.core.PyString;
 import org.python.core.PySystemState;
 import org.python.util.PythonInterpreter;
 
@@ -55,13 +58,36 @@ public class Jython extends Builder {
         }
     }
 
+    @Override
     public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener)  throws IOException, InterruptedException {
         PySystemState sys = new PySystemState();
         sys.setCurrentWorkingDir(build.getWorkspace().getRemote());
-        PythonInterpreter interp = new PythonInterpreter(null, sys);
+
+        // Put Hudson global variables and build variables in '_hudson_env_'
+        PyDictionary environ = new PyDictionary();
+        for (Map.Entry<String,String> entry :
+                build.getEnvironment(listener).entrySet()) {
+            environ.__setitem__(
+                new PyString(entry.getKey()), new PyString(entry.getValue()));
+        }
+        for (Map.Entry<String,String> entry :
+                build.getBuildVariables().entrySet()) {
+            environ.__setitem__(
+                new PyString(entry.getKey()), new PyString(entry.getValue()));
+        }
+        PyDictionary namespace = new PyDictionary();
+        namespace.__setitem__(new PyString("_hudson_env_"), environ);
+
+        PythonInterpreter interp =
+            new PythonInterpreter(namespace, sys);
 
         interp.setOut(listener.getLogger());
         interp.setErr(listener.getLogger());
+        // Make _hudson_env_ contents available in os.environ
+        interp.exec("import os");
+        interp.exec("os.environ.update(_hudson_env_)");
+        interp.exec("del(os)");
+
         interp.exec(this.getCommand());
         interp.cleanup();
 
