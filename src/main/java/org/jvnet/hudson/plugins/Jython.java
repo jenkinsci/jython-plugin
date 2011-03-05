@@ -25,6 +25,7 @@ import org.python.util.PythonInterpreter;
  * will be invoked. 
  *
  * @author R. Tyler Ballance
+ * @author Jack Leow
  */
 public class Jython extends Builder {
     private final String command;
