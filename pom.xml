@@ -40,10 +40,15 @@
   </developers>
   
   <dependencies>
+    <!-- Using system dependency since Jython 2.5.2 is not in repo1 yet -->
     <dependency>
       <groupId>org.python</groupId>
-      <artifactId>jython</artifactId>
-      <version>2.5.0</version>
+      <artifactId>jython-standalone</artifactId>
+      <version>2.5.2</version>
+      <scope>system</scope>
+      <systemPath>
+        ${basedir}/src/main/webapp/WEB-INF/lib/jython-standalone-2.5.2.jar
+      </systemPath>
     </dependency>
   </dependencies>
   
