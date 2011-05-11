@@ -2,26 +2,29 @@ package org.jvnet.hudson.plugins;
 
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.Launcher.ProcStarter;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
+import hudson.model.Hudson;
+import hudson.model.JDK;
+import hudson.model.Node;
 import hudson.model.Result;
+import hudson.remoting.Which;
 import hudson.tasks.Builder;
+import java.io.ByteArrayInputStream;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.util.Map;
 
-import org.python.core.PyDictionary;
-import org.python.core.PyString;
-import org.python.core.PySystemState;
-import org.python.util.PythonInterpreter;
+import org.python.util.jython;
 
 /**
  * Jython builder.
  * <p>
- * When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)} method
+ * When a build is performed, the
+ * {@link #perform(AbstractBuild, Launcher, BuildListener)} method
  * will be invoked. 
  *
  * @author R. Tyler Ballance
@@ -61,38 +64,26 @@ public class Jython extends Builder {
 
     @Override
     public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener)  throws IOException, InterruptedException {
-        PySystemState sys = new PySystemState();
-        sys.setCurrentWorkingDir(build.getWorkspace().getRemote());
-
-        // Put Hudson global variables and build variables in '_hudson_env_'
-        PyDictionary environ = new PyDictionary();
-        for (Map.Entry<String,String> entry :
-                build.getEnvironment(listener).entrySet()) {
-            environ.__setitem__(
-                new PyString(entry.getKey()), new PyString(entry.getValue()));
-        }
-        for (Map.Entry<String,String> entry :
-                build.getBuildVariables().entrySet()) {
-            environ.__setitem__(
-                new PyString(entry.getKey()), new PyString(entry.getValue()));
-        }
-        PyDictionary namespace = new PyDictionary();
-        namespace.__setitem__(new PyString("_hudson_env_"), environ);
-
-        PythonInterpreter interp =
-            new PythonInterpreter(namespace, sys);
-
-        interp.setOut(listener.getLogger());
-        interp.setErr(listener.getLogger());
-        // Make _hudson_env_ contents available in os.environ
-        interp.exec("import os");
-        interp.exec("os.environ.update(_hudson_env_)");
-        interp.exec("del(os)");
-
-        interp.exec(this.getCommand());
-        interp.cleanup();
-
-        build.setResult(Result.SUCCESS);
-        return true;
+        Node builtOn = build.getBuiltOn();
+        boolean master = builtOn == Hudson.getInstance();
+        
+        JDK configuredJdk = build.getProject().getJDK();
+        String javaCmd = configuredJdk != null ?
+            configuredJdk.forNode(builtOn, listener).getHome() + "/bin/java" : "java";
+        
+        String jythonRuntime = master ?
+            Which.jarFile(jython.class).getAbsolutePath() :
+            builtOn.getRootPath().child("tools/jython/jython-standalone.jar").getRemote();
+        
+        boolean success = 0 == launcher.launch().
+            cmds(javaCmd, "-jar", jythonRuntime, "-c", getCommand()).
+            masks(false, false, false, false, true).
+            envs(build.getEnvironment(listener)).
+            stdout(listener).
+            pwd(build.getWorkspace()).
+            join();
+        
+        build.setResult(success ? Result.SUCCESS : Result.FAILURE);
+        return success;
     }
 }
