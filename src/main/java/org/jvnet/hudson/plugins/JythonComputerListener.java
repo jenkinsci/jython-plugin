@@ -12,7 +12,7 @@ import hudson.slaves.ComputerListener;
 import org.python.util.jython;
 
 /**
- * {@link ComputerListener} for the Jython plug in.
+ * {@link ComputerListener} for the Jython plug-in.
  * <p>
  * Transfers the Jython JAR file to slave nodes.
  *
