@@ -13,6 +13,7 @@ import hudson.model.JDK;
 import hudson.model.Node;
 import hudson.model.Result;
 import hudson.tasks.Builder;
+import hudson.util.ArgumentListBuilder;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -77,9 +78,21 @@ public class Jython extends Builder {
             new HashMap<String,String>(build.getEnvironment(listener));
         envVar.putAll(build.getBuildVariables());
         
+        String DEFAULT_JAVA_XMX = "-Xmx512m";
+        String javaOpts = envVar.get("JAVA_OPTS");
+        if (javaOpts == null) {
+            javaOpts = DEFAULT_JAVA_XMX;
+        } else if (javaOpts.indexOf("-Xmx") == -1) {
+            javaOpts += " " + DEFAULT_JAVA_XMX;
+        }
+        ArgumentListBuilder argBuilder = new ArgumentListBuilder(javaCmd);
+        argBuilder.addTokenized(javaOpts);
+        argBuilder.add("-jar");
+        argBuilder.add(jythonJar);
+        argBuilder.add("-c");
+        argBuilder.addMasked(getCommand());
         boolean success = 0 == launcher.launch().
-            cmds(javaCmd, "-Xmx256m", "-jar", jythonJar, "-c", getCommand()).
-            masks(false, false, false, false, false, true).
+            cmds(argBuilder).
             envs(envVar).
             stdout(listener).
             pwd(build.getWorkspace()).
