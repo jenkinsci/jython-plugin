@@ -69,7 +69,7 @@ public class Jython extends Builder {
             configuredJdk.forNode(builtOn, listener).getHome() + "/bin/java" :
             "java";
         
-        String jythonRuntime =
+        String jythonJar =
             builtOn.getRootPath().child("tools/jython/jython-standalone.jar").
             getRemote();
         
@@ -78,8 +78,8 @@ public class Jython extends Builder {
         envVar.putAll(build.getBuildVariables());
         
         boolean success = 0 == launcher.launch().
-            cmds(javaCmd, "-jar", jythonRuntime, "-c", getCommand()).
-            masks(false, false, false, false, true).
+            cmds(javaCmd, "-Xmx256m", "-jar", jythonJar, "-c", getCommand()).
+            masks(false, false, false, false, false, true).
             envs(envVar).
             stdout(listener).
             pwd(build.getWorkspace()).
