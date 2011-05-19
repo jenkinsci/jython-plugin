@@ -15,8 +15,11 @@ import org.python.util.jython;
 public class JythonPlugin extends Plugin {
     @Override
     public void start() throws Exception {
+        FilePath jythonHome =
+            Hudson.getInstance().getRootPath().child("tools/jython");
+        
         new FilePath(Which.jarFile(jython.class)).copyTo(
-            Hudson.getInstance().getRootPath().
-            child("tools/jython/jython-standalone.jar"));
+            jythonHome.child("jython-standalone.jar"));
+        jythonHome.child("tmp").mkdirs();
     }
 }

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -70,9 +71,12 @@ public class Jython extends Builder {
             configuredJdk.forNode(builtOn, listener).getHome() + "/bin/java" :
             "java";
         
+        FilePath jythonHome = builtOn.getRootPath().child("tools/jython");
         String jythonJar =
-            builtOn.getRootPath().child("tools/jython/jython-standalone.jar").
-            getRemote();
+            jythonHome.child("jython-standalone.jar").getRemote();
+        
+        FilePath jythonScript = jythonHome.child("tmp").
+            createTextTempFile("script", ".py", getCommand());
         
         Map<String,String> envVar =
             new HashMap<String,String>(build.getEnvironment(listener));
@@ -85,18 +89,20 @@ public class Jython extends Builder {
         } else if (javaOpts.indexOf("-Xmx") == -1) {
             javaOpts += " " + DEFAULT_JAVA_XMX;
         }
+        
         ArgumentListBuilder argBuilder = new ArgumentListBuilder(javaCmd);
         argBuilder.addTokenized(javaOpts);
         argBuilder.add("-jar");
         argBuilder.add(jythonJar);
-        argBuilder.add("-c");
-        argBuilder.addMasked(getCommand());
+        argBuilder.add(jythonScript.getRemote());
         boolean success = 0 == launcher.launch().
             cmds(argBuilder).
             envs(envVar).
             stdout(listener).
             pwd(build.getWorkspace()).
             join();
+        
+        jythonScript.delete();
         
         build.setResult(success ? Result.SUCCESS : Result.FAILURE);
         return success;

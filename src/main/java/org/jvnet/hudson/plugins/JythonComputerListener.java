@@ -24,8 +24,11 @@ public class JythonComputerListener extends ComputerListener {
     public void preOnline(
             Computer c, Channel channel, FilePath root, TaskListener listener)
             throws IOException, InterruptedException {
+        FilePath jythonHome = root.child("tools/jython");
+        
         new FilePath(Which.jarFile(jython.class)).copyTo(
-            root.child("tools/jython/jython-standalone.jar"));
+            jythonHome.child("jython-standalone.jar"));
+        jythonHome.child("tmp").mkdirs();
         listener.getLogger().println("Copied jython-standalone.jar");
     }
     
