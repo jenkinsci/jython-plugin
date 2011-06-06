@@ -1,5 +1,6 @@
 package org.jvnet.hudson.plugins;
 
+import hudson.model.Descriptor.FormException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +16,9 @@ import hudson.model.Node;
 import hudson.model.Result;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -39,10 +43,23 @@ public class Jython extends Builder {
         return command;
     }
     
+    @Override
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl)super.getDescriptor();
+    }
+    
     @Extension
     public static final class DescriptorImpl extends Descriptor<Builder> {
+        private Set<PythonPackage> pythonPackages =
+            new HashSet<PythonPackage>();
+        
         public DescriptorImpl() {
             super(Jython.class);
+            load();
+        }
+        
+        public Set<PythonPackage> getPythonPackages() {
+            return pythonPackages;
         }
         
         @Override
@@ -50,8 +67,34 @@ public class Jython extends Builder {
             return new Jython(formData.getString("jython"));
         }
         
+        @Override
         public String getDisplayName() {
             return "Execute Jython script";
+        }
+        
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json)
+                throws FormException {
+			List<PythonPackage> newPythonPackages = req.bindParametersToList(
+                PythonPackage.class, "pythonPackage.");
+            // Install new items
+            for (PythonPackage pkg : newPythonPackages) {
+                if (!pythonPackages.contains(pkg)) {
+                    pkg.install();
+                    pythonPackages.add(pkg);
+                }
+            }
+            // Uninstall removed items
+            for (PythonPackage pkg : pythonPackages) {
+                if (!newPythonPackages.contains(pkg)) {
+                    pkg.remove();
+                    pythonPackages.remove(pkg);
+                }
+            }
+            // TODO update timestamp somewhere.
+            save();
+            
+            return super.configure(req, json);
         }
         
         @Override
@@ -59,7 +102,7 @@ public class Jython extends Builder {
             return "/plugin/jython/help.html";
         }
     }
-
+    
     @Override
     public boolean perform(
             AbstractBuild<?,?> build, Launcher launcher, BuildListener listener)
