@@ -31,5 +31,4 @@ public class JythonComputerListener extends ComputerListener {
         jythonHome.child("tmp").mkdirs();
         listener.getLogger().println("Copied jython-standalone.jar");
     }
-    
 }
