@@ -12,43 +12,13 @@
   <version>1.5-SNAPSHOT</version>
   <name>Jython Plugin</name>
   
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/Jython+Plugin</url>
-  <scm>
-    <connection>scm:git:git://github.com/jenkinsci/jython-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/jython-plugin.git</developerConnection>
-    <url>http://github.com/jenkinsci/jython-plugin</url>
-  </scm>
-  <developers>
-    <developer>
-      <id>jackgene</id>
-      <name>Jack Leow</name>
-      <email>jackgene@java.net</email>
-      <timezone>-8</timezone>
-      <roles>
-        <role>Maintainer as of March 2011</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>rtyler</id>
-      <name>R. Tyler Ballance</name>
-      <email>tyler@slide.com</email>
-      <timezone>-8</timezone>
-      <roles>
-        <role>Original implementation</role>
-      </roles>
-    </developer>
-  </developers>
-  
   <dependencies>
-    <!-- Using system dependency since Jython 2.5.2 is not in repo1 yet -->
     <dependency>
-      <groupId>org.python</groupId>
+      <groupId>org.jvnet.hudson.plugins.jython</groupId>
       <artifactId>jython-standalone</artifactId>
       <version>2.5.2</version>
-      <scope>system</scope>
-      <systemPath>
-        ${basedir}/src/main/webapp/WEB-INF/lib/jython-standalone-2.5.2.jar
-      </systemPath>
+      <scope>compile</scope>
+      <classifier>jar-with-dependencies</classifier>
     </dependency>
   </dependencies>
   
