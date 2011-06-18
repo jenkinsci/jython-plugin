@@ -9,6 +9,7 @@
   
   <modules>
     <module>jython-standalone</module>
+    <module>jython-installer</module>
     <module>jython-plugin</module>
   </modules>
   
