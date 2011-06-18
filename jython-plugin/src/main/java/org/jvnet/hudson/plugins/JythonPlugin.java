@@ -3,7 +3,10 @@ package org.jvnet.hudson.plugins;
 import hudson.FilePath;
 import hudson.Plugin;
 import hudson.model.Hudson;
+import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
 import hudson.remoting.Which;
+import hudson.util.StreamTaskListener;
 import org.python.util.jython;
 
 /**
@@ -12,14 +15,18 @@ import org.python.util.jython;
  *
  * @author Jack Leow
  */
-public class JythonPlugin extends Plugin {
+public final class JythonPlugin extends Plugin {
+    public static final String INSTALLER_FILE =
+        "jython-installer-2.5.2.JENKINS.zip";
+    
     @Override
     public void start() throws Exception {
         FilePath jythonHome =
             Hudson.getInstance().getRootPath().child("tools/jython");
         
-        new FilePath(Which.jarFile(jython.class)).copyTo(
-            jythonHome.child("jython-standalone.jar"));
+        jythonHome.installIfNecessaryFrom(
+            getClass().getResource(JythonPlugin.INSTALLER_FILE),
+            StreamTaskListener.fromStdout(), "Installed Jython runtime.");
         jythonHome.child("tmp").mkdirs();
     }
 }

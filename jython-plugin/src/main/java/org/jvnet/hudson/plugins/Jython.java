@@ -116,7 +116,7 @@ public class Jython extends Builder {
         
         FilePath jythonHome = builtOn.getRootPath().child("tools/jython");
         String jythonJar =
-            jythonHome.child("jython-standalone.jar").getRemote();
+            jythonHome.child("jython.jar").getRemote();
         
         FilePath jythonScript = jythonHome.child("tmp").
             createTextTempFile("script", ".py", getCommand());
