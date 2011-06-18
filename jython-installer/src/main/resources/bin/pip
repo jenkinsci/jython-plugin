@@ -1,0 +1,2 @@
+import pip, sys
+sys.exit(pip.main())
