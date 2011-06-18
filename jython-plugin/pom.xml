@@ -1,0 +1,49 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jvnet.hudson.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>1.377</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  
+  <artifactId>jython</artifactId>
+  <packaging>hpi</packaging>
+  <version>1.6-SNAPSHOT</version>
+  <name>Jython Plugin</name>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.jvnet.hudson.plugins.jython</groupId>
+      <artifactId>jython-standalone</artifactId>
+      <version>2.5.2</version>
+      <scope>compile</scope>
+      <classifier>jar-with-dependencies</classifier>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <distributionManagement>
+    <repository>
+      <id>maven.jenkins-ci.org</id>
+      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+    </repository>
+  </distributionManagement>
+  
+  <repositories>
+    <repository>
+      <id>maven.jenkins-ci.org</id>
+      <url>http://maven.jenkins-ci.org/content/repositories/releases</url>
+    </repository>
+  </repositories>
+</project>
