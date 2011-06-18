@@ -10,6 +10,18 @@
     <fileSet>
       <directory>${project.build.directory}/classes</directory>
       <outputDirectory>/</outputDirectory>
+      <excludes>
+        <exclude>jython</exclude>
+      </excludes>
+    </fileSet>
+    <!-- Explicitly copy "jython" with specific filemode -->
+    <fileSet>
+      <directory>${project.build.directory}/classes</directory>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>jython</include>
+      </includes>
+      <fileMode>0755</fileMode>
     </fileSet>
   </fileSets>
 </assembly>
