@@ -10,7 +10,7 @@
   
   <groupId>org.jvnet.hudson.plugins.jython</groupId>
   <artifactId>jython-standalone</artifactId>
-  <version>2.5.2</version>
+  <version>2.5.2.JENKINS</version>
   <name>Jython Standalone Runtime</name>
   
   <dependencies>
