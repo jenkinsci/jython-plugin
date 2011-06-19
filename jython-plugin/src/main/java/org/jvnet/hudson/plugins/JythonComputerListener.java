@@ -7,9 +7,7 @@ import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
-import hudson.remoting.Which;
 import hudson.slaves.ComputerListener;
-import org.python.util.jython;
 
 /**
  * {@link ComputerListener} for the Jython plug-in.
@@ -24,11 +22,11 @@ public class JythonComputerListener extends ComputerListener {
     public void preOnline(
             Computer c, Channel channel, FilePath root, TaskListener listener)
             throws IOException, InterruptedException {
-        FilePath jythonHome = root.child("tools/jython");
+        final FilePath JYTHON_HOME = root.child("tools/jython");
         
-        jythonHome.installIfNecessaryFrom(
-            getClass().getResource(JythonPlugin.INSTALLER_FILE),
-            listener, "Installed Jython runtime.");
-        jythonHome.child("tmp").mkdirs();
+        JYTHON_HOME.installIfNecessaryFrom(
+            JythonPlugin.INSTALLER_URL, listener, "Installed Jython runtime.");
+        JYTHON_HOME.child("jython").chmod(0755);
+        JYTHON_HOME.child("tmp").mkdirs();
     }
 }
