@@ -47,7 +47,7 @@
                   <classifier>distribute</classifier>
                   <type>zip</type>
                   <outputDirectory>
-                    ${project.build.directory}/classes
+                    ${project.build.directory}/classes/org/jvnet/hudson/plugins
                   </outputDirectory>
                   <destFileName>
                     jython-installer-2.5.2.JENKINS.zip
