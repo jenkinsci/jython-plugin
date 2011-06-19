@@ -3,7 +3,9 @@ package org.jvnet.hudson.plugins;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -12,62 +14,50 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Jack Leow
  */
 public class PythonPackage {
-    private final URL url;
-    
-    enum PipCommands {
+    enum PipCommand {
         install, uninstall
     }
     
     @DataBoundConstructor
-    public PythonPackage(URL url) {
-        if (url == null) {
-            throw new NullPointerException("url cannot be null");
+    public PythonPackage(String name) {
+        if (name == null) {
+            throw new NullPointerException("name cannot be null");
         }
-        this.url = url;
+        this.name = name;
     }
     
+    private String name;
+    
     public String getName() {
-        String name;
-        
-        String path = url.getPath();
-        String pathLower = path.toLowerCase();
-        int nameStartIndex = path.lastIndexOf("/") + 1;
-        if (pathLower.endsWith(".egg")) {
-            name = path.substring(nameStartIndex, path.length() - 4);
-        } else if (pathLower.endsWith(".tar.gz")) {
-            name = path.substring(nameStartIndex, path.length() - 7);
-        } else if (pathLower.endsWith(".zip")) {
-            name = path.substring(nameStartIndex, path.length() - 4);
-        } else {
-            name = path.substring(nameStartIndex);
-        }
-        
         return name;
     }
     
-    public URL getUrl() {
-        return url;
-    }
-    
-    public synchronized void install() {
+    private void invokePip(
+            PipCommand command, List<String> options, String pkg) {
         try {
-            // TODO parse name from output
-            Process proc =
-                new ProcessBuilder(
-                    JythonPlugin.JYTHON_HOME.child("jython").getRemote(),
-                    JythonPlugin.JYTHON_HOME.child("bin/pip").getRemote(),
-                    PipCommands.install.toString(),
-                    getUrl().toString()).
+            List<String> procCmd = Arrays.asList(
+                JythonPlugin.JYTHON_HOME.child("jython").getRemote(),
+                JythonPlugin.JYTHON_HOME.child("bin/pip").getRemote(),
+                command.toString());
+            procCmd.addAll(options);
+            procCmd.add(pkg);
+            Process proc = new ProcessBuilder(procCmd).
                 redirectErrorStream(true).
                 start();
             BufferedReader stdOut = new BufferedReader(
                 new InputStreamReader(proc.getInputStream()));
-            String line;
-            do {
-                line = stdOut.readLine();
+            StringBuilder lines = new StringBuilder();
+            String line = stdOut.readLine();
+            boolean nameSet = false;
+            while (line != null) {
                 System.out.println(line);
-            } while (line != null);
-            System.out.println("packaged installed, exit: " + proc.waitFor());
+                lines.append(line);
+                line = stdOut.readLine();
+            }
+            if (proc.waitFor() != 0) {
+                throw new JythonPluginException(
+                    "Package installation failed:\n" + lines);
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -75,8 +65,13 @@ public class PythonPackage {
         }
     }
     
-    public void remove() {
-//        throw new UnsupportedOperationException("not implemented yet");
+    public void install() {
+        invokePip(
+            PipCommand.install, Collections.<String>emptyList(), getName());
+    }
+    
+    public void uninstall() {
+        invokePip(PipCommand.uninstall, Arrays.asList("--yes"), getName());
     }
     
     @Override
@@ -88,8 +83,8 @@ public class PythonPackage {
             return false;
         }
         final PythonPackage other = (PythonPackage) obj;
-        if (this.url != other.url && (this.url == null ||
-                !this.url.toString().equals(other.url.toString()))) {
+        if (this.name != other.name && (this.name == null ||
+                !this.name.equals(other.name))) {
             return false;
         }
         return true;
@@ -98,7 +93,7 @@ public class PythonPackage {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 43 * hash + (this.url != null ? this.url.hashCode() : 0);
+        hash = 43 * hash + (this.name != null ? this.name.hashCode() : 0);
         return hash;
     }
 }

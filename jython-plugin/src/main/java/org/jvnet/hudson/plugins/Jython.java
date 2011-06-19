@@ -87,7 +87,7 @@ public class Jython extends Builder {
             // Uninstall removed items
             for (PythonPackage pkg : pythonPackages) {
                 if (!newPythonPackages.contains(pkg)) {
-                    pkg.remove();
+                    pkg.uninstall();
                 }
             }
             pythonPackages.retainAll(newPythonPackages); 
