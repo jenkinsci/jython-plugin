@@ -3,6 +3,7 @@ package org.jvnet.hudson.plugins;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,10 +36,11 @@ public class PythonPackage {
     private void invokePip(
             PipCommand command, List<String> options, String pkg) {
         try {
-            List<String> procCmd = Arrays.asList(
-                JythonPlugin.JYTHON_HOME.child("jython").getRemote(),
-                JythonPlugin.JYTHON_HOME.child("bin/pip").getRemote(),
-                command.toString());
+            List<String> procCmd = new ArrayList<String>(4 + options.size());
+            // TODO make sure this works in Windows
+            procCmd.add(JythonPlugin.JYTHON_HOME.child("jython").getRemote());
+            procCmd.add(JythonPlugin.JYTHON_HOME.child("bin/pip").getRemote());
+            procCmd.add(command.toString());
             procCmd.addAll(options);
             procCmd.add(pkg);
             Process proc = new ProcessBuilder(procCmd).
