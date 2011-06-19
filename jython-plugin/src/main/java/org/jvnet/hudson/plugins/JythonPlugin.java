@@ -17,6 +17,7 @@ public final class JythonPlugin extends Plugin {
         JythonPlugin.class.getResource("jython-installer-2.5.2.JENKINS.zip");
     public static final FilePath JYTHON_HOME =
         Hudson.getInstance().getRootPath().child("tools/jython");
+    public static final String SITE_PACKAGES_PATH = "Lib/site-packages";
     
     @Override
     public void start() throws Exception {

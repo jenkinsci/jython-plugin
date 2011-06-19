@@ -55,6 +55,7 @@ public class Jython extends Builder {
         
         public DescriptorImpl() {
             super(Jython.class);
+            // TODO override this to load information from Python installation
             load();
         }
         
@@ -114,9 +115,28 @@ public class Jython extends Builder {
             configuredJdk.forNode(builtOn, listener).getHome() + "/bin/java" :
             "java";
         
-        FilePath jythonHome = builtOn.getRootPath().child("tools/jython");
-        String jythonJar =
-            jythonHome.child("jython.jar").getRemote();
+        final FilePath jythonHome = builtOn.getRootPath().child("tools/jython");
+        final String jythonJar = jythonHome.child("jython.jar").getRemote();
+        
+        final FilePath jythonSitePackages =
+            jythonHome.child(JythonPlugin.SITE_PACKAGES_PATH);
+        final FilePath jythonSitePackagesMaster =
+            JythonPlugin.JYTHON_HOME.child(JythonPlugin.SITE_PACKAGES_PATH);
+        List<FilePath> pkgs = jythonSitePackagesMaster.list();
+        for (FilePath pkgSrc : pkgs) {
+            String pkgName = pkgSrc.getName();
+            FilePath pkgTgt = jythonSitePackages.child(pkgName);
+            if (!pkgTgt.exists() ||
+                    pkgSrc.lastModified() > pkgTgt.lastModified()) {
+                listener.getLogger().println(
+                    "Copying package \"" + pkgName + "\" from master.");
+                if (pkgSrc.isDirectory()) {
+                    pkgSrc.copyRecursiveTo(pkgTgt);
+                } else {
+                    pkgSrc.copyTo(pkgTgt);
+                }
+            }
+        }
         
         FilePath jythonScript = jythonHome.child("tmp").
             createTextTempFile("script", ".py", getCommand());
@@ -125,7 +145,7 @@ public class Jython extends Builder {
             new HashMap<String,String>(build.getEnvironment(listener));
         envVar.putAll(build.getBuildVariables());
         
-        String DEFAULT_JAVA_XMX = "-Xmx512m";
+        final String DEFAULT_JAVA_XMX = "-Xmx512m";
         String javaOpts = envVar.get("JAVA_OPTS");
         if (javaOpts == null) {
             javaOpts = DEFAULT_JAVA_XMX;
