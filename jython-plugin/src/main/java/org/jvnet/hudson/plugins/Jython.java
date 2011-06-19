@@ -88,9 +88,9 @@ public class Jython extends Builder {
             for (PythonPackage pkg : pythonPackages) {
                 if (!newPythonPackages.contains(pkg)) {
                     pkg.remove();
-                    pythonPackages.remove(pkg);
                 }
             }
+            pythonPackages.retainAll(newPythonPackages); 
             // TODO update timestamp somewhere.
             save();
             
