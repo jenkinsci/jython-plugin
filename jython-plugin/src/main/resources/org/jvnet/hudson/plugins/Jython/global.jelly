@@ -17,12 +17,14 @@
         <table width="100%">
           <j:if test="${pythonPackage != null}">
             <f:entry title="Name">
-              <st:out value="${pythonPackage.name}" />
+              <f:textbox name="pythonPackage.name" value="${pythonPackage.name}" readonly="true" />
             </f:entry>
           </j:if>
-          <f:entry title="URL" help="/plugin/jython/help-url.html">
-            <f:textbox name="pythonPackage.url" value="${pythonPackage.url}" />
-          </f:entry>
+          <j:if test="${pythonPackage == null}">
+            <f:entry title="Name/URL" help="/plugin/jython/help-name.html">
+              <f:textbox name="pythonPackage.name" value="${pythonPackage.name}" />
+            </f:entry>
+          </j:if>
           <f:entry title="">
             <div align="right">
               <f:repeatableDeleteButton />
