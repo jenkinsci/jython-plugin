@@ -6,7 +6,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -15,6 +17,13 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Jack Leow
  */
 public class PythonPackage {
+    public static final Set<PythonPackage> PREINSTALLED_PACKAGES =
+        Collections.unmodifiableSet(new HashSet<PythonPackage>(Arrays.asList(
+            new PythonPackage("distribute"),
+            new PythonPackage("pip"),
+            new PythonPackage("setuptools")
+        )));
+    
     enum PipCommand {
         install, uninstall
     }

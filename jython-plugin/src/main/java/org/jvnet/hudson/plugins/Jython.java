@@ -16,10 +16,13 @@ import hudson.model.Node;
 import hudson.model.Result;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -50,17 +53,81 @@ public class Jython extends Builder {
     
     @Extension
     public static final class DescriptorImpl extends Descriptor<Builder> {
-        private Set<PythonPackage> pythonPackages =
-            new HashSet<PythonPackage>();
-        
         public DescriptorImpl() {
             super(Jython.class);
-            // TODO override this to load information from Python installation
             load();
         }
         
+        private String getPackageName(FilePath pkgInfo) {
+            String name = null;
+            final String NAME_PREFIX = "Name: ";
+            
+            BufferedReader reader = null;
+            try {
+                try {
+                    reader = new BufferedReader(
+                        new InputStreamReader(pkgInfo.read()));
+                    
+                    String line;
+                    do {
+                        line = reader.readLine();
+                        if (line.startsWith(NAME_PREFIX)) {
+                            name = line.substring(NAME_PREFIX.length());
+                            break;
+                        }
+                    } while (line != null);
+                } finally {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                }
+            } catch (IOException e) {
+                throw new JythonPluginException(
+                    "error while determining package name", e);
+            }
+            if (name == null) {
+                throw new JythonPluginException(
+                    "unable to determine package name");
+            }
+            
+            return name;
+        }
+        
+        private transient Set<PythonPackage> pythonPackages =
+            new HashSet<PythonPackage>();
+        
         public Set<PythonPackage> getPythonPackages() {
             return pythonPackages;
+        }
+        
+        @Override
+        public void load() {
+            super.load();
+            try {
+                List<FilePath> pkgFiles = JythonPlugin.JYTHON_HOME.
+                    child(JythonPlugin.SITE_PACKAGES_PATH).
+                    list(new SuffixFileFilter(".egg-info"));
+
+                for (FilePath pkgFile : pkgFiles) {
+                    String pkgName;
+
+                    String pkgFileName = pkgFile.getName();
+                    if (pkgFile.isDirectory()) {
+                        pkgName = getPackageName(
+                            pkgFile.child("PKG-INFO"));
+                    } else {
+                        pkgName = getPackageName(pkgFile);
+                    }
+                    pythonPackages.add(new PythonPackage(pkgName));
+                }
+                pythonPackages.removeAll(PythonPackage.PREINSTALLED_PACKAGES);
+            } catch (IOException e) {
+                throw new JythonPluginException(
+                    "error determining installed packages", e);
+            } catch (InterruptedException e) {
+                throw new JythonPluginException(
+                    "error determining installed packages", e);
+            }
         }
         
         @Override
