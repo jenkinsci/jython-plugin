@@ -12,7 +12,7 @@
     so it should be straightforward to find them.
   -->
   <f:section title="Jython">
-    <f:entry title="Python Packages" description="">
+    <f:entry title="Python Packages" description="Note that package installation/removal can take several minutes">
       <f:repeatable name="pythonPackages" var="pythonPackage" items="${descriptor.pythonPackages}">
         <table width="100%">
           <j:if test="${pythonPackage != null}">
