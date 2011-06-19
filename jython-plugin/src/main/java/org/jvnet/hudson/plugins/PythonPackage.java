@@ -1,20 +1,22 @@
 package org.jvnet.hudson.plugins;
 
-import hudson.remoting.Which;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Properties;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.python.util.PythonInterpreter;
-import org.python.util.jython;
 
 /**
- *
+ * An installable Python package.
+ * 
  * @author Jack Leow
  */
 public class PythonPackage {
     private final URL url;
+    
+    enum PipCommands {
+        install, uninstall
+    }
     
     @DataBoundConstructor
     public PythonPackage(URL url) {
@@ -49,33 +51,32 @@ public class PythonPackage {
     
     public synchronized void install() {
         try {
-            Properties props = new Properties();
-            File jythonJar = Which.jarFile(jython.class);
-            String pathSep = System.getProperty("path.separator");
-            props.setProperty(
-                "python.path",
-                jythonJar + "/Lib" + pathSep +
-                jythonJar.getParent() + "/Lib/site-packages" + pathSep +
-                jythonJar.getParent() + "/Lib/site-packages/setuptools-0.6c11-py2.5.egg");
-            PythonInterpreter.initialize(
-                System.getProperties(), props,
-                new String[] {"", "install", getUrl().toString()});
-            PythonInterpreter jython = new PythonInterpreter();
-            jython.exec("import sys");
-            jython.exec("sys.executable = ''");
-            jython.exec("print sys.prefix");
-            jython.exec("print sys.path");
-            jython.exec("print sys.argv");
-            jython.exec("import pip");
-            jython.exec("sys.exit(pip.main())");
-            jython.cleanup();
+            // TODO parse name from output
+            Process proc =
+                new ProcessBuilder(
+                    JythonPlugin.JYTHON_HOME.child("jython").getRemote(),
+                    JythonPlugin.JYTHON_HOME.child("bin/pip").getRemote(),
+                    PipCommands.install.toString(),
+                    getUrl().toString()).
+                redirectErrorStream(true).
+                start();
+            BufferedReader stdOut = new BufferedReader(
+                new InputStreamReader(proc.getInputStream()));
+            String line;
+            do {
+                line = stdOut.readLine();
+                System.out.println(line);
+            } while (line != null);
+            System.out.println("packaged installed, exit: " + proc.waitFor());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
     
     public void remove() {
-        throw new UnsupportedOperationException("not implemented yet");
+//        throw new UnsupportedOperationException("not implemented yet");
     }
     
     @Override
@@ -87,7 +88,8 @@ public class PythonPackage {
             return false;
         }
         final PythonPackage other = (PythonPackage) obj;
-        if (this.url != other.url && (this.url == null || !this.url.equals(other.url))) {
+        if (this.url != other.url && (this.url == null ||
+                !this.url.toString().equals(other.url.toString()))) {
             return false;
         }
         return true;
