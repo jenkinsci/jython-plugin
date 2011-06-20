@@ -1,5 +1,6 @@
 package org.jvnet.hudson.plugins;
 
+import hudson.FilePath;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -46,10 +47,28 @@ public class PythonPackage {
             PipCommand command, List<String> options, String pkg) {
         try {
             List<String> procCmd = new ArrayList<String>(4 + options.size());
-            // TODO make sure this works in Windows
-            procCmd.add(JythonPlugin.JYTHON_HOME.child("jython").getRemote());
-            procCmd.add(JythonPlugin.JYTHON_HOME.child("bin/pip").getRemote());
-            procCmd.add(command.toString());
+            
+            FilePath jythonScript = JythonPlugin.JYTHON_HOME.child("jython");
+            // Windows workaround:
+            // if we're on Windows, use jython.bat instead of jython.
+            boolean win32 = jythonScript.mode() == -1;
+            if (win32) {
+                jythonScript = JythonPlugin.JYTHON_HOME.child("jython.bat");
+            }
+            procCmd.add(jythonScript.getRemote());
+            
+            // Windows workaround:
+            // if doing an install on Windows, use easy_install instead of pip.
+            // for whatever reason pip doesn't work on Windows.
+            if (win32 && command == PipCommand.install) {
+                procCmd.add(JythonPlugin.JYTHON_HOME.child(
+                    "bin/easy_install").getRemote());
+            } else {
+                procCmd.add(JythonPlugin.JYTHON_HOME.child(
+                    "bin/pip").getRemote());
+                procCmd.add(command.toString());
+            }
+            
             procCmd.addAll(options);
             procCmd.add(pkg);
             Process proc = new ProcessBuilder(procCmd).
