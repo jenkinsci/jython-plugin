@@ -18,6 +18,7 @@ import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -103,8 +104,7 @@ public class Jython extends Builder {
         public void load() {
             super.load();
             try {
-                Set<PythonPackage> pythonPackages =
-                    new HashSet<PythonPackage>();
+                Set<PythonPackage> pkgs = new HashSet<PythonPackage>();
                 List<FilePath> pkgFiles = JythonPlugin.JYTHON_HOME.
                     child(JythonPlugin.SITE_PACKAGES_PATH).
                     list(new SuffixFileFilter(".egg-info"));
@@ -119,10 +119,10 @@ public class Jython extends Builder {
                     } else {
                         pkgName = getPackageName(pkgFile);
                     }
-                    pythonPackages.add(new PythonPackage(pkgName));
+                    pkgs.add(new PythonPackage(pkgName));
                 }
-                pythonPackages.removeAll(PythonPackage.PREINSTALLED_PACKAGES);
-                this.pythonPackages = pythonPackages;
+                pkgs.removeAll(PythonPackage.PREINSTALLED_PACKAGES);
+                pythonPackages = pkgs;
             } catch (IOException e) {
                 throw new JythonPluginException(
                     "error determining installed packages", e);
@@ -192,23 +192,46 @@ public class Jython extends Builder {
         
         final FilePath jythonHome = builtOn.getRootPath().child("tools/jython");
         final String jythonJar = jythonHome.child("jython.jar").getRemote();
-        
+
+        // Synchronize Python packages with slaves
         final FilePath jythonSitePackages =
             jythonHome.child(JythonPlugin.SITE_PACKAGES_PATH);
         final FilePath jythonSitePackagesMaster =
             JythonPlugin.JYTHON_HOME.child(JythonPlugin.SITE_PACKAGES_PATH);
-        List<FilePath> pkgs = jythonSitePackagesMaster.list();
-        for (FilePath pkgSrc : pkgs) {
+        // Copying new packages
+        PrintStream logger = listener.getLogger();
+        for (FilePath pkgSrc : jythonSitePackagesMaster.list()) {
             String pkgName = pkgSrc.getName();
             FilePath pkgTgt = jythonSitePackages.child(pkgName);
             if (!pkgTgt.exists() ||
                     pkgSrc.lastModified() > pkgTgt.lastModified()) {
-                listener.getLogger().println(
+                logger.println(
                     "Copying package \"" + pkgName + "\" from master.");
                 if (pkgSrc.isDirectory()) {
                     pkgSrc.copyRecursiveTo(pkgTgt);
                 } else {
                     pkgSrc.copyTo(pkgTgt);
+                }
+            }
+        }
+        // Deleting uninstalled packages
+        for (FilePath pkgTgt : jythonSitePackages.list()) {
+            String pkgName = pkgTgt.getName();
+            FilePath pkgSrc = jythonSitePackagesMaster.child(pkgName);
+            if (!pkgSrc.exists()) {
+                logger.println("Deleting package \"" + pkgName + "\".");
+                try {
+                    if (pkgTgt.isDirectory()) {
+                        pkgTgt.deleteRecursive();
+                    } else {
+                        pkgTgt.delete();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace(
+                        listener.error(
+                            "error deleting package - continuing with build"
+                        )
+                    );
                 }
             }
         }
