@@ -93,8 +93,7 @@ public class Jython extends Builder {
             return name;
         }
         
-        private transient Set<PythonPackage> pythonPackages =
-            new HashSet<PythonPackage>();
+        private transient Set<PythonPackage> pythonPackages;
         
         public Set<PythonPackage> getPythonPackages() {
             return pythonPackages;
@@ -104,6 +103,8 @@ public class Jython extends Builder {
         public void load() {
             super.load();
             try {
+                Set<PythonPackage> pythonPackages =
+                    new HashSet<PythonPackage>();
                 List<FilePath> pkgFiles = JythonPlugin.JYTHON_HOME.
                     child(JythonPlugin.SITE_PACKAGES_PATH).
                     list(new SuffixFileFilter(".egg-info"));
@@ -121,6 +122,7 @@ public class Jython extends Builder {
                     pythonPackages.add(new PythonPackage(pkgName));
                 }
                 pythonPackages.removeAll(PythonPackage.PREINSTALLED_PACKAGES);
+                this.pythonPackages = pythonPackages;
             } catch (IOException e) {
                 throw new JythonPluginException(
                     "error determining installed packages", e);
@@ -145,22 +147,28 @@ public class Jython extends Builder {
                 throws FormException {
 			List<PythonPackage> newPythonPackages = req.bindParametersToList(
                 PythonPackage.class, "pythonPackage.");
+            boolean packageListUpdated = false;
+            
             // Install new items
             for (PythonPackage pkg : newPythonPackages) {
                 if (!pythonPackages.contains(pkg)) {
                     pkg.install();
-                    pythonPackages.add(pkg);
+                    packageListUpdated = true;
                 }
             }
             // Uninstall removed items
             for (PythonPackage pkg : pythonPackages) {
                 if (!newPythonPackages.contains(pkg)) {
                     pkg.uninstall();
+                    packageListUpdated = true;
                 }
             }
-            pythonPackages.retainAll(newPythonPackages); 
             // TODO update timestamp somewhere.
-            save();
+            //save();
+            
+            if (packageListUpdated) {
+                load();
+            }
             
             return super.configure(req, json);
         }
