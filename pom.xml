@@ -15,6 +15,10 @@
     <module>jython-plugin</module>
   </modules>
   
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Jython+Plugin</url>
   <scm>
     <connection>
