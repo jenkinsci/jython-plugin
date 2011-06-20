@@ -7,7 +7,6 @@
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>1.377</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   
   <artifactId>jython</artifactId>
