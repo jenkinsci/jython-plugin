@@ -14,7 +14,6 @@
         <exclude>jython</exclude>
         <exclude>jython.bat</exclude>
       </excludes>
-      <lineEnding>unix</lineEnding>
     </fileSet>
     <!-- Explicitly copy "jython" with specific filemode -->
     <fileSet>
