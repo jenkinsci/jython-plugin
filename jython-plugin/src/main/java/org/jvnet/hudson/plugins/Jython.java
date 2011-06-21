@@ -108,11 +108,10 @@ public class Jython extends Builder {
                 List<FilePath> pkgFiles = JythonPlugin.JYTHON_HOME.
                     child(JythonPlugin.SITE_PACKAGES_PATH).
                     list(new SuffixFileFilter(".egg-info"));
-
+                
                 for (FilePath pkgFile : pkgFiles) {
                     String pkgName;
-
-                    String pkgFileName = pkgFile.getName();
+                    
                     if (pkgFile.isDirectory()) {
                         pkgName = getPackageName(
                             pkgFile.child("PKG-INFO"));
@@ -145,7 +144,7 @@ public class Jython extends Builder {
         @Override
         public boolean configure(StaplerRequest req, JSONObject json)
                 throws FormException {
-			List<PythonPackage> newPythonPackages = req.bindParametersToList(
+            List<PythonPackage> newPythonPackages = req.bindParametersToList(
                 PythonPackage.class, "pythonPackage.");
             boolean packageListUpdated = false;
             
@@ -192,7 +191,8 @@ public class Jython extends Builder {
         
         final FilePath jythonHome = builtOn.getRootPath().child("tools/jython");
         final String jythonJar = jythonHome.child("jython.jar").getRemote();
-
+        
+        final long syncStartTime = System.currentTimeMillis();
         // Synchronize Python packages with slaves
         final FilePath jythonSitePackages =
             jythonHome.child(JythonPlugin.SITE_PACKAGES_PATH);
@@ -235,9 +235,14 @@ public class Jython extends Builder {
                 }
             }
         }
+        logger.println("[METRIC], site-packages sync, " +
+            (System.currentTimeMillis() - syncStartTime) + "ms");
         
+        final long copyStartTime = System.currentTimeMillis();
         FilePath jythonScript = jythonHome.child("tmp").
             createTextTempFile("script", ".py", getCommand());
+        logger.println("[METRIC], script file creation, " +
+            (System.currentTimeMillis() - copyStartTime) + "ms");
         
         Map<String,String> envVar =
             new HashMap<String,String>(build.getEnvironment(listener));
