@@ -12,8 +12,9 @@
       <outputDirectory>/</outputDirectory>
       <excludes>
         <exclude>jython</exclude>
+        <exclude>jython.bat</exclude>
       </excludes>
-      <lineEnding>keep</lineEnding>
+      <lineEnding>unix</lineEnding>
     </fileSet>
     <!-- Explicitly copy "jython" with specific filemode -->
     <fileSet>
@@ -24,6 +25,15 @@
       </includes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>
+    </fileSet>
+    <!-- Explicitly copy "jython.bat" with DOS line ending -->
+    <fileSet>
+      <directory>${project.build.directory}/classes</directory>
+      <outputDirectory>/</outputDirectory>
+      <includes>
+        <include>jython.bat</include>
+      </includes>
+      <lineEnding>dos</lineEnding>
     </fileSet>
   </fileSets>
 </assembly>
