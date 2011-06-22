@@ -105,20 +105,13 @@ public class Jython extends Builder {
             super.load();
             try {
                 Set<PythonPackage> pkgs = new HashSet<PythonPackage>();
+                
                 List<FilePath> pkgFiles = JythonPlugin.JYTHON_HOME.
                     child(JythonPlugin.SITE_PACKAGES_PATH).
-                    list(new SuffixFileFilter(".egg-info"));
-                
+                    list(new SuffixFileFilter(".egg"));
                 for (FilePath pkgFile : pkgFiles) {
-                    String pkgName;
-                    
-                    if (pkgFile.isDirectory()) {
-                        pkgName = getPackageName(
-                            pkgFile.child("PKG-INFO"));
-                    } else {
-                        pkgName = getPackageName(pkgFile);
-                    }
-                    pkgs.add(new PythonPackage(pkgName));
+                    pkgs.add(new PythonPackage(
+                        getPackageName(pkgFile.child("EGG-INFO/PKG-INFO"))));
                 }
                 pkgs.removeAll(PythonPackage.PREINSTALLED_PACKAGES);
                 pythonPackages = pkgs;

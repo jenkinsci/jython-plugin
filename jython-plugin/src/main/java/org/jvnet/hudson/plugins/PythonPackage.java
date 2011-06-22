@@ -1,6 +1,8 @@
 package org.jvnet.hudson.plugins;
 
 import hudson.FilePath;
+import hudson.ProxyConfiguration;
+import hudson.model.Hudson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -43,10 +45,9 @@ public class PythonPackage {
         return name;
     }
     
-    private void invokePip(
-            PipCommand command, List<String> options, String pkg) {
+    private void invokeJython(String scriptPath, List<String> options) {
         try {
-            List<String> procCmd = new ArrayList<String>(4 + options.size());
+            List<String> procCmd = new ArrayList<String>(2 + options.size());
             
             FilePath jythonScript = JythonPlugin.JYTHON_HOME.child("jython");
             // Windows workaround:
@@ -57,23 +58,17 @@ public class PythonPackage {
             }
             procCmd.add(jythonScript.getRemote());
             
-            // Windows workaround:
-            // if doing an install on Windows, use easy_install instead of pip.
-            // for whatever reason pip doesn't work on Windows.
-            if (win32 && command == PipCommand.install) {
-                procCmd.add(JythonPlugin.JYTHON_HOME.child(
-                    "bin/easy_install").getRemote());
-            } else {
-                procCmd.add(JythonPlugin.JYTHON_HOME.child(
-                    "bin/pip").getRemote());
-                procCmd.add(command.toString());
-            }
-            
+            procCmd.add(JythonPlugin.JYTHON_HOME.child(scriptPath).getRemote());
             procCmd.addAll(options);
-            procCmd.add(pkg);
-            Process proc = new ProcessBuilder(procCmd).
-                redirectErrorStream(true).
-                start();
+            ProcessBuilder procBuilder = new ProcessBuilder(procCmd).
+                redirectErrorStream(true);
+            
+            ProxyConfiguration proxy = Hudson.getInstance().proxy;
+            if (proxy != null) {
+                procBuilder.environment().put(
+                    "http_proxy", "http://" + proxy.name + ":" + proxy.port);
+            }
+            Process proc = procBuilder.start();
             BufferedReader stdOut = new BufferedReader(
                 new InputStreamReader(proc.getInputStream()));
             StringBuilder lines = new StringBuilder();
@@ -96,12 +91,11 @@ public class PythonPackage {
     }
     
     public void install() {
-        invokePip(
-            PipCommand.install, Collections.<String>emptyList(), getName());
+        invokeJython("bin/easy_install", Arrays.asList(getName()));
     }
     
     public void uninstall() {
-        invokePip(PipCommand.uninstall, Arrays.asList("--yes"), getName());
+        invokeJython("bin/pip", Arrays.asList("uninstall", "--yes", getName()));
     }
     
     @Override
