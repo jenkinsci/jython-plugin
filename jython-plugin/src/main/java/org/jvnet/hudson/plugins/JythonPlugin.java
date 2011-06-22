@@ -3,8 +3,8 @@ package org.jvnet.hudson.plugins;
 import hudson.FilePath;
 import hudson.Plugin;
 import hudson.model.Hudson;
-import hudson.util.StreamTaskListener;
 import java.net.URL;
+import java.util.logging.Logger;
 
 /**
  * The Jython plug-in entry point. Copies the Jython runtime to the tools
@@ -19,12 +19,19 @@ public final class JythonPlugin extends Plugin {
         Hudson.getInstance().getRootPath().child("tools/jython");
     public static final String SITE_PACKAGES_PATH = "Lib/site-packages";
     
+    private static final Logger LOG =
+        Logger.getLogger(JythonPlugin.class.toString());
+    
     @Override
     public void start() throws Exception {
-        JYTHON_HOME.installIfNecessaryFrom(
-            INSTALLER_URL, StreamTaskListener.fromStdout(),
-            "Installed Jython runtime.");
-        JYTHON_HOME.child("jython").chmod(0755);
-        JYTHON_HOME.child("tmp").mkdirs();
+        if (!JYTHON_HOME.child("jython.jar").exists()) {
+            if (JYTHON_HOME.exists()) {
+                JYTHON_HOME.deleteContents();
+            }
+            JYTHON_HOME.unzipFrom(INSTALLER_URL.openStream());
+            JYTHON_HOME.child("jython").chmod(0755);
+            JYTHON_HOME.child("tmp").mkdirs();
+            LOG.info("Installed Jython runtime.");
+        }
     }
 }

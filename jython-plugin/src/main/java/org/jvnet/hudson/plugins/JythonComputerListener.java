@@ -22,11 +22,16 @@ public class JythonComputerListener extends ComputerListener {
     public void preOnline(
             Computer c, Channel channel, FilePath root, TaskListener listener)
             throws IOException, InterruptedException {
-        final FilePath JYTHON_HOME = root.child("tools/jython");
+        final FilePath jythonHome = root.child("tools/jython");
         
-        JYTHON_HOME.installIfNecessaryFrom(
-            JythonPlugin.INSTALLER_URL, listener, "Installed Jython runtime.");
-        JYTHON_HOME.child("jython").chmod(0755);
-        JYTHON_HOME.child("tmp").mkdirs();
+        if (!jythonHome.child("jython.jar").exists()) {
+            if (jythonHome.exists()) {
+                jythonHome.deleteContents();
+            }
+            JythonPlugin.JYTHON_HOME.copyRecursiveTo(jythonHome);
+            jythonHome.child("jython").chmod(0755);
+            jythonHome.child("tmp").mkdirs();
+            listener.getLogger().println("Installed Jython runtime.");
+        }
     }
 }
