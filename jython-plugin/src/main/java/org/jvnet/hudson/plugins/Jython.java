@@ -107,19 +107,31 @@ public class Jython extends Builder {
             return lastModified;
         }
         
-        private void loadPackages() {
+        private Set<PythonPackage> scanPackages() {
             try {
                 Set<PythonPackage> pkgs = new HashSet<PythonPackage>();
-
-                List<FilePath> pkgFiles = JythonPlugin.JYTHON_HOME.
+                
+                List<FilePath> pkgFiles;
+                pkgFiles = JythonPlugin.JYTHON_HOME.
                     child(JythonPlugin.SITE_PACKAGES_PATH).
                     list(new SuffixFileFilter(".egg"));
                 for (FilePath pkgFile : pkgFiles) {
                     pkgs.add(new PythonPackage(
                         getPackageName(pkgFile.child("EGG-INFO/PKG-INFO"))));
                 }
+                pkgFiles = JythonPlugin.JYTHON_HOME.
+                    child(JythonPlugin.SITE_PACKAGES_PATH).
+                    list(new SuffixFileFilter(".egg-info"));
+                for (FilePath pkgFile : pkgFiles) {
+                    if (pkgFile.isDirectory()) {
+                        pkgs.add(new PythonPackage(
+                            getPackageName(pkgFile.child("PKG-INFO"))));
+                    } else {
+                        pkgs.add(new PythonPackage(getPackageName(pkgFile)));
+                    }
+                }
                 pkgs.removeAll(PythonPackage.PREINSTALLED_PACKAGES);
-                pythonPackages = pkgs;
+                return pkgs;
             } catch (IOException e) {
                 throw new JythonPluginException(
                     "error determining installed packages", e);
@@ -132,7 +144,7 @@ public class Jython extends Builder {
         @Override
         public void load() {
             super.load();
-            loadPackages();
+            pythonPackages = scanPackages();
         }
         
         @Override
@@ -168,7 +180,7 @@ public class Jython extends Builder {
             }
             
             if (packageListModified) {
-                loadPackages();
+                pythonPackages = scanPackages();
                 lastModified = new Date();
                 save();
             }
