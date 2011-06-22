@@ -25,9 +25,6 @@ public class JythonComputerListener extends ComputerListener {
         final FilePath jythonHome = root.child("tools/jython");
         
         if (!jythonHome.child("jython.jar").exists()) {
-            if (jythonHome.exists()) {
-                jythonHome.deleteContents();
-            }
             JythonPlugin.JYTHON_HOME.copyRecursiveTo(jythonHome);
             jythonHome.child("jython").chmod(0755);
             jythonHome.child("tmp").mkdirs();

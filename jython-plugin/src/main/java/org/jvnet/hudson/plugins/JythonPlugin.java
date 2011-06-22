@@ -25,9 +25,6 @@ public final class JythonPlugin extends Plugin {
     @Override
     public void start() throws Exception {
         if (!JYTHON_HOME.child("jython.jar").exists()) {
-            if (JYTHON_HOME.exists()) {
-                JYTHON_HOME.deleteContents();
-            }
             JYTHON_HOME.unzipFrom(INSTALLER_URL.openStream());
             JYTHON_HOME.child("jython").chmod(0755);
             JYTHON_HOME.child("tmp").mkdirs();
