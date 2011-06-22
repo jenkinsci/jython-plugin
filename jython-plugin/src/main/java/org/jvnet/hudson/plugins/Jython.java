@@ -19,6 +19,7 @@ import hudson.util.ArgumentListBuilder;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -99,13 +100,17 @@ public class Jython extends Builder {
         public Set<PythonPackage> getPythonPackages() {
             return pythonPackages;
         }
+
+        private Date lastModified;
         
-        @Override
-        public void load() {
-            super.load();
+        public Date getLastModified() {
+            return lastModified;
+        }
+        
+        private void loadPackages() {
             try {
                 Set<PythonPackage> pkgs = new HashSet<PythonPackage>();
-                
+
                 List<FilePath> pkgFiles = JythonPlugin.JYTHON_HOME.
                     child(JythonPlugin.SITE_PACKAGES_PATH).
                     list(new SuffixFileFilter(".egg"));
@@ -125,6 +130,12 @@ public class Jython extends Builder {
         }
         
         @Override
+        public void load() {
+            super.load();
+            loadPackages();
+        }
+        
+        @Override
         public Builder newInstance(StaplerRequest req, JSONObject formData) {
             return new Jython(formData.getString("jython"));
         }
@@ -139,27 +150,27 @@ public class Jython extends Builder {
                 throws FormException {
             List<PythonPackage> newPythonPackages = req.bindParametersToList(
                 PythonPackage.class, "pythonPackage.");
-            boolean packageListUpdated = false;
+            boolean packageListModified = false;
             
             // Install new items
             for (PythonPackage pkg : newPythonPackages) {
                 if (!pythonPackages.contains(pkg)) {
                     pkg.install();
-                    packageListUpdated = true;
+                    packageListModified = true;
                 }
             }
             // Uninstall removed items
             for (PythonPackage pkg : pythonPackages) {
                 if (!newPythonPackages.contains(pkg)) {
                     pkg.uninstall();
-                    packageListUpdated = true;
+                    packageListModified = true;
                 }
             }
-            // TODO update timestamp somewhere.
-            //save();
             
-            if (packageListUpdated) {
-                load();
+            if (packageListModified) {
+                loadPackages();
+                lastModified = new Date();
+                save();
             }
             
             return super.configure(req, json);
@@ -191,42 +202,50 @@ public class Jython extends Builder {
             jythonHome.child(JythonPlugin.SITE_PACKAGES_PATH);
         final FilePath jythonSitePackagesMaster =
             JythonPlugin.JYTHON_HOME.child(JythonPlugin.SITE_PACKAGES_PATH);
-        // Copying new packages
+        Date lastModified = getDescriptor().getLastModified();
+        // TODO move this into the if block when metrics reporting is removed
         PrintStream logger = listener.getLogger();
-        for (FilePath pkgSrc : jythonSitePackagesMaster.list()) {
-            String pkgName = pkgSrc.getName();
-            FilePath pkgTgt = jythonSitePackages.child(pkgName);
-            if (!pkgTgt.exists() ||
-                    pkgSrc.lastModified() > pkgTgt.lastModified()) {
-                logger.println(
-                    "Copying package \"" + pkgName + "\" from master.");
-                if (pkgSrc.isDirectory()) {
-                    pkgSrc.copyRecursiveTo(pkgTgt);
-                } else {
-                    pkgSrc.copyTo(pkgTgt);
-                }
-            }
-        }
-        // Deleting uninstalled packages
-        for (FilePath pkgTgt : jythonSitePackages.list()) {
-            String pkgName = pkgTgt.getName();
-            FilePath pkgSrc = jythonSitePackagesMaster.child(pkgName);
-            if (!pkgSrc.exists()) {
-                logger.println("Deleting package \"" + pkgName + "\".");
-                try {
-                    if (pkgTgt.isDirectory()) {
-                        pkgTgt.deleteRecursive();
+        if (!jythonSitePackages.equals(jythonSitePackagesMaster) &&
+                lastModified != null &&
+                getDescriptor().getLastModified().after(
+                    new Date(jythonSitePackages.lastModified()))) {
+            // Copying new packages
+            for (FilePath pkgSrc : jythonSitePackagesMaster.list()) {
+                String pkgName = pkgSrc.getName();
+                FilePath pkgTgt = jythonSitePackages.child(pkgName);
+                if (!pkgTgt.exists() ||
+                        pkgSrc.lastModified() > pkgTgt.lastModified()) {
+                    logger.println(
+                        "Copying package \"" + pkgName + "\" from master.");
+                    if (pkgSrc.isDirectory()) {
+                        pkgSrc.copyRecursiveTo(pkgTgt);
                     } else {
-                        pkgTgt.delete();
+                        pkgSrc.copyTo(pkgTgt);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace(
-                        listener.error(
-                            "error deleting package - continuing with build"
-                        )
-                    );
                 }
             }
+            // Deleting uninstalled packages
+            for (FilePath pkgTgt : jythonSitePackages.list()) {
+                String pkgName = pkgTgt.getName();
+                FilePath pkgSrc = jythonSitePackagesMaster.child(pkgName);
+                if (!pkgSrc.exists()) {
+                    logger.println("Deleting package \"" + pkgName + "\".");
+                    try {
+                        if (pkgTgt.isDirectory()) {
+                            pkgTgt.deleteRecursive();
+                        } else {
+                            pkgTgt.delete();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace(
+                            listener.error(
+                                "error deleting package - continuing with build"
+                            )
+                        );
+                    }
+                }
+            }
+            jythonSitePackages.touch(System.currentTimeMillis());
         }
         logger.println("[METRIC], site-packages sync, " +
             (System.currentTimeMillis() - syncStartTime) + "ms");
@@ -237,6 +256,7 @@ public class Jython extends Builder {
         logger.println("[METRIC], script file creation, " +
             (System.currentTimeMillis() - copyStartTime) + "ms");
         
+        final long execStartTime = System.currentTimeMillis();
         Map<String,String> envVar =
             new HashMap<String,String>(build.getEnvironment(listener));
         envVar.putAll(build.getBuildVariables());
@@ -264,6 +284,8 @@ public class Jython extends Builder {
         jythonScript.delete();
         
         build.setResult(success ? Result.SUCCESS : Result.FAILURE);
+        logger.println("[METRIC], script execution, " +
+            (System.currentTimeMillis() - execStartTime) + "ms");
         return success;
     }
 }
