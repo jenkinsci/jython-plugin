@@ -27,10 +27,6 @@ public class PythonPackage {
             new PythonPackage("setuptools")
         )));
     
-    enum PipCommand {
-        install, uninstall
-    }
-    
     @DataBoundConstructor
     public PythonPackage(String name) {
         if (name == null) {
