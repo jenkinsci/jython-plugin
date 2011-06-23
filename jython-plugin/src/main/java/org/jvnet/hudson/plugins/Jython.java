@@ -221,42 +221,8 @@ public class Jython extends Builder {
                 lastModified != null &&
                 getDescriptor().getLastModified().after(
                     new Date(jythonSitePackages.lastModified()))) {
-            // Copying new packages
-            for (FilePath pkgSrc : jythonSitePackagesMaster.list()) {
-                String pkgName = pkgSrc.getName();
-                FilePath pkgTgt = jythonSitePackages.child(pkgName);
-                if (!pkgTgt.exists() ||
-                        pkgSrc.lastModified() > pkgTgt.lastModified()) {
-                    logger.println(
-                        "Copying package \"" + pkgName + "\" from master.");
-                    if (pkgSrc.isDirectory()) {
-                        pkgSrc.copyRecursiveTo(pkgTgt);
-                    } else {
-                        pkgSrc.copyTo(pkgTgt);
-                    }
-                }
-            }
-            // Deleting uninstalled packages
-            for (FilePath pkgTgt : jythonSitePackages.list()) {
-                String pkgName = pkgTgt.getName();
-                FilePath pkgSrc = jythonSitePackagesMaster.child(pkgName);
-                if (!pkgSrc.exists()) {
-                    logger.println("Deleting package \"" + pkgName + "\".");
-                    try {
-                        if (pkgTgt.isDirectory()) {
-                            pkgTgt.deleteRecursive();
-                        } else {
-                            pkgTgt.delete();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace(
-                            listener.error(
-                                "error deleting package - continuing with build"
-                            )
-                        );
-                    }
-                }
-            }
+            JythonPlugin.syncSitePackages(
+                jythonSitePackagesMaster, jythonSitePackages, listener);
             jythonSitePackages.touch(System.currentTimeMillis());
         }
         logger.println("[METRIC], site-packages sync, " +

@@ -3,6 +3,9 @@ package org.jvnet.hudson.plugins;
 import hudson.FilePath;
 import hudson.Plugin;
 import hudson.model.Hudson;
+import hudson.model.TaskListener;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.logging.Logger;
 
@@ -21,6 +24,48 @@ public final class JythonPlugin extends Plugin {
     
     private static final Logger LOG =
         Logger.getLogger(JythonPlugin.class.toString());
+    
+    static void syncSitePackages(
+            FilePath source, FilePath target, TaskListener listener) 
+            throws IOException, InterruptedException {
+        PrintStream logger = listener.getLogger();
+        
+        // Copying new packages
+        for (FilePath pkgSrc : source.list()) {
+            String pkgName = pkgSrc.getName();
+            FilePath pkgTgt = target.child(pkgName);
+            if (!pkgTgt.exists() ||
+                    pkgSrc.lastModified() > pkgTgt.lastModified()) {
+                if (pkgSrc.isDirectory()) {
+                    pkgSrc.copyRecursiveTo(pkgTgt);
+                } else {
+                    pkgSrc.copyTo(pkgTgt);
+                }
+                logger.println("Copied " + pkgName);
+            }
+        }
+        // Deleting uninstalled packages
+        for (FilePath pkgTgt : target.list()) {
+            String pkgName = pkgTgt.getName();
+            FilePath pkgSrc = source.child(pkgName);
+            if (!pkgSrc.exists()) {
+                try {
+                    if (pkgTgt.isDirectory()) {
+                        pkgTgt.deleteRecursive();
+                    } else {
+                        pkgTgt.delete();
+                    }
+                    logger.println("Deleted " + pkgName);
+                } catch (Exception e) {
+                    e.printStackTrace(
+                        listener.error(
+                            "error deleting package - continuing with build"
+                        )
+                    );
+                }
+            }
+        }
+    }
     
     @Override
     public void start() throws Exception {
