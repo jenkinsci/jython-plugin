@@ -18,7 +18,6 @@ import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -208,15 +207,12 @@ public class Jython extends Builder {
         final FilePath jythonHome = builtOn.getRootPath().child("tools/jython");
         final String jythonJar = jythonHome.child("jython.jar").getRemote();
         
-        final long syncStartTime = System.currentTimeMillis();
         // Synchronize Python packages with slaves
         final FilePath jythonSitePackages =
             jythonHome.child(JythonPlugin.SITE_PACKAGES_PATH);
         final FilePath jythonSitePackagesMaster =
             JythonPlugin.JYTHON_HOME.child(JythonPlugin.SITE_PACKAGES_PATH);
         Date lastModified = getDescriptor().getLastModified();
-        // TODO move this into the if block when metrics reporting is removed
-        PrintStream logger = listener.getLogger();
         if (!jythonSitePackages.equals(jythonSitePackagesMaster) &&
                 lastModified != null &&
                 getDescriptor().getLastModified().after(
@@ -225,16 +221,10 @@ public class Jython extends Builder {
                 JythonPlugin.JYTHON_HOME, jythonHome, listener);
             jythonSitePackages.touch(System.currentTimeMillis());
         }
-        logger.println("[METRIC], site-packages sync, " +
-            (System.currentTimeMillis() - syncStartTime) + "ms");
         
-        final long copyStartTime = System.currentTimeMillis();
         FilePath jythonScript = jythonHome.child("tmp").
             createTextTempFile("script", ".py", getCommand());
-        logger.println("[METRIC], script file creation, " +
-            (System.currentTimeMillis() - copyStartTime) + "ms");
         
-        final long execStartTime = System.currentTimeMillis();
         Map<String,String> envVar =
             new HashMap<String,String>(build.getEnvironment(listener));
         envVar.putAll(build.getBuildVariables());
@@ -262,8 +252,6 @@ public class Jython extends Builder {
         jythonScript.delete();
         
         build.setResult(success ? Result.SUCCESS : Result.FAILURE);
-        logger.println("[METRIC], script execution, " +
-            (System.currentTimeMillis() - execStartTime) + "ms");
         return success;
     }
 }
