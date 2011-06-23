@@ -21,19 +21,25 @@ public final class JythonPlugin extends Plugin {
     public static final FilePath JYTHON_HOME =
         Hudson.getInstance().getRootPath().child("tools/jython");
     public static final String SITE_PACKAGES_PATH = "Lib/site-packages";
+    public static final String EASY_INSTALL_FILE_PATH = "easy-install.pth";
     
     private static final Logger LOG =
         Logger.getLogger(JythonPlugin.class.toString());
     
     static void syncSitePackages(
-            FilePath source, FilePath target, TaskListener listener) 
+            FilePath sourceJythonHome, FilePath targetJythonHome,
+            TaskListener listener)
             throws IOException, InterruptedException {
         PrintStream logger = listener.getLogger();
+        final FilePath srcSitePkgs = sourceJythonHome.child(SITE_PACKAGES_PATH);
+        final FilePath tgtSitePkgs = targetJythonHome.child(SITE_PACKAGES_PATH);
         
+        // Copying "easy-install.pth"
+        srcSitePkgs.child(EASY_INSTALL_FILE_PATH).copyTo(tgtSitePkgs);
         // Copying new packages
-        for (FilePath pkgSrc : source.list()) {
+        for (FilePath pkgSrc : srcSitePkgs.list()) {
             String pkgName = pkgSrc.getName();
-            FilePath pkgTgt = target.child(pkgName);
+            FilePath pkgTgt = tgtSitePkgs.child(pkgName);
             if (!pkgTgt.exists() ||
                     pkgSrc.lastModified() > pkgTgt.lastModified()) {
                 if (pkgSrc.isDirectory()) {
@@ -45,9 +51,9 @@ public final class JythonPlugin extends Plugin {
             }
         }
         // Deleting uninstalled packages
-        for (FilePath pkgTgt : target.list()) {
+        for (FilePath pkgTgt : tgtSitePkgs.list()) {
             String pkgName = pkgTgt.getName();
-            FilePath pkgSrc = source.child(pkgName);
+            FilePath pkgSrc = srcSitePkgs.child(pkgName);
             if (!pkgSrc.exists()) {
                 try {
                     if (pkgTgt.isDirectory()) {

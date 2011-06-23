@@ -222,7 +222,7 @@ public class Jython extends Builder {
                 getDescriptor().getLastModified().after(
                     new Date(jythonSitePackages.lastModified()))) {
             JythonPlugin.syncSitePackages(
-                jythonSitePackagesMaster, jythonSitePackages, listener);
+                JythonPlugin.JYTHON_HOME, jythonHome, listener);
             jythonSitePackages.touch(System.currentTimeMillis());
         }
         logger.println("[METRIC], site-packages sync, " +
