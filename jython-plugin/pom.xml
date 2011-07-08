@@ -60,6 +60,27 @@
     </plugins>
   </build>
   
+  <developers>
+    <developer>
+      <id>jackgene</id>
+      <name>Jack Leow</name>
+      <email>jackgene@java.net</email>
+      <timezone>-8</timezone>
+      <roles>
+        <role>Maintainer as of March 2011</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>rtyler</id>
+      <name>R. Tyler Ballance</name>
+      <email>tyler@slide.com</email>
+      <timezone>-8</timezone>
+      <roles>
+        <role>Original implementation</role>
+      </roles>
+    </developer>
+  </developers>
+  
   <distributionManagement>
     <repository>
       <id>maven.jenkins-ci.org</id>
