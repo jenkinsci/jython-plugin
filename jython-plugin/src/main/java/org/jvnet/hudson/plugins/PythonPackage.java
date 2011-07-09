@@ -59,6 +59,7 @@ public class PythonPackage {
             ProcessBuilder procBuilder = new ProcessBuilder(procCmd).
                 redirectErrorStream(true);
             
+            // Set "http_proxy" environment variable to Jenkins proxy value
             ProxyConfiguration proxy = Hudson.getInstance().proxy;
             if (proxy != null) {
                 procBuilder.environment().put(
@@ -69,7 +70,6 @@ public class PythonPackage {
                 new InputStreamReader(proc.getInputStream()));
             StringBuilder lines = new StringBuilder();
             String line = stdOut.readLine();
-            boolean nameSet = false;
             while (line != null) {
                 System.out.println(line);
                 lines.append(line);

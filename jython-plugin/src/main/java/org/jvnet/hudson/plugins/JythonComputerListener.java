@@ -29,7 +29,7 @@ public class JythonComputerListener extends ComputerListener {
             JythonPlugin.syncSitePackages(jythonHome, listener);
             jythonHome.child("jython").chmod(0755);
             jythonHome.child("tmp").mkdirs();
-            listener.getLogger().println("Installed Jython runtime.");
+            listener.getLogger().println("Installed Jython runtime");
         }
     }
 }

@@ -78,7 +78,7 @@ public final class JythonPlugin extends Plugin {
             JYTHON_HOME.unzipFrom(INSTALLER_URL.openStream());
             JYTHON_HOME.child("jython").chmod(0755);
             JYTHON_HOME.child("tmp").mkdirs();
-            LOG.info("Installed Jython runtime.");
+            LOG.info("Installed Jython runtime");
         }
     }
 }
