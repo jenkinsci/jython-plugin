@@ -26,8 +26,7 @@ public class JythonComputerListener extends ComputerListener {
         
         if (!jythonHome.child("jython.jar").exists()) {
             jythonHome.unzipFrom(JythonPlugin.INSTALLER_URL.openStream());
-            JythonPlugin.syncSitePackages(
-                JythonPlugin.JYTHON_HOME, jythonHome, listener);
+            JythonPlugin.syncSitePackages(jythonHome, listener);
             jythonHome.child("jython").chmod(0755);
             jythonHome.child("tmp").mkdirs();
             listener.getLogger().println("Installed Jython runtime.");

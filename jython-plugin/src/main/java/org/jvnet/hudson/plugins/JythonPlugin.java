@@ -21,21 +21,20 @@ public final class JythonPlugin extends Plugin {
     public static final FilePath JYTHON_HOME =
         Hudson.getInstance().getRootPath().child("tools/jython");
     public static final String SITE_PACKAGES_PATH = "Lib/site-packages";
-    public static final String EASY_INSTALL_FILE_PATH = "easy-install.pth";
     
+    private static final String EASY_INSTALL_FILENAME = "easy-install.pth";
     private static final Logger LOG =
         Logger.getLogger(JythonPlugin.class.toString());
     
     static void syncSitePackages(
-            FilePath sourceJythonHome, FilePath targetJythonHome,
-            TaskListener listener)
+            FilePath targetJythonHome, TaskListener listener)
             throws IOException, InterruptedException {
         PrintStream logger = listener.getLogger();
-        final FilePath srcSitePkgs = sourceJythonHome.child(SITE_PACKAGES_PATH);
+        final FilePath srcSitePkgs = JYTHON_HOME.child(SITE_PACKAGES_PATH);
         final FilePath tgtSitePkgs = targetJythonHome.child(SITE_PACKAGES_PATH);
         
         // Copying "easy-install.pth"
-        srcSitePkgs.child(EASY_INSTALL_FILE_PATH).copyTo(tgtSitePkgs);
+        srcSitePkgs.child(EASY_INSTALL_FILENAME).copyTo(tgtSitePkgs);
         // Copying new packages
         for (FilePath pkgSrc : srcSitePkgs.list()) {
             String pkgName = pkgSrc.getName();

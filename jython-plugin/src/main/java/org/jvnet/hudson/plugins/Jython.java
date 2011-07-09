@@ -217,8 +217,7 @@ public class Jython extends Builder {
                 lastModified != null &&
                 getDescriptor().getLastModified().after(
                     new Date(jythonSitePackages.lastModified()))) {
-            JythonPlugin.syncSitePackages(
-                JythonPlugin.JYTHON_HOME, jythonHome, listener);
+            JythonPlugin.syncSitePackages(jythonHome, listener);
             jythonSitePackages.touch(System.currentTimeMillis());
         }
         
