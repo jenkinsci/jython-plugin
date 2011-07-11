@@ -8,8 +8,8 @@ package org.jvnet.hudson.plugins;
 public class JythonPluginException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     
-    public JythonPluginException(String string, Throwable thrwbl) {
-        super(string, thrwbl);
+    public JythonPluginException(String string, Throwable cause) {
+        super(string, cause);
     }
     
     public JythonPluginException(String string) {
