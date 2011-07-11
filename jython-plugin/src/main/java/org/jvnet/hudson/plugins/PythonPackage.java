@@ -41,9 +41,9 @@ public class PythonPackage {
         return name;
     }
     
-    private void invokeJython(String scriptPath, List<String> options) {
+    private void invokeJython(String scriptPath, String... options) {
         try {
-            List<String> procCmd = new ArrayList<String>(2 + options.size());
+            List<String> procCmd = new ArrayList<String>(2 + options.length);
             
             FilePath jythonScript = JythonPlugin.JYTHON_HOME.child("jython");
             // Windows workaround:
@@ -55,7 +55,7 @@ public class PythonPackage {
             procCmd.add(jythonScript.getRemote());
             
             procCmd.add(JythonPlugin.JYTHON_HOME.child(scriptPath).getRemote());
-            procCmd.addAll(options);
+            procCmd.addAll(Arrays.asList(options));
             ProcessBuilder procBuilder = new ProcessBuilder(procCmd).
                 redirectErrorStream(true);
             
@@ -87,11 +87,11 @@ public class PythonPackage {
     }
     
     public void install() {
-        invokeJython("bin/easy_install", Arrays.asList(getName()));
+        invokeJython("bin/easy_install", getName());
     }
     
     public void uninstall() {
-        invokeJython("bin/pip", Arrays.asList("uninstall", "--yes", getName()));
+        invokeJython("bin/pip", "uninstall", "--yes", getName());
     }
     
     @Override
