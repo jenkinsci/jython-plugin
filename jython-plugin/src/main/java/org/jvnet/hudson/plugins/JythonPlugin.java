@@ -4,9 +4,11 @@ import hudson.FilePath;
 import hudson.Plugin;
 import hudson.model.Hudson;
 import hudson.model.TaskListener;
+import hudson.util.LogTaskListener;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -25,6 +27,20 @@ public final class JythonPlugin extends Plugin {
     private static final String EASY_INSTALL_FILENAME = "easy-install.pth";
     private static final Logger LOG =
         Logger.getLogger(JythonPlugin.class.toString());
+    
+    static boolean installJythonIfNecessary(
+            FilePath targetJythonHome, TaskListener listener)
+            throws IOException, InterruptedException {
+        boolean installed = false;
+        if (!targetJythonHome.child("jython.jar").exists()) {
+            targetJythonHome.unzipFrom(INSTALLER_URL.openStream());
+            targetJythonHome.child("jython").chmod(0755);
+            targetJythonHome.child("tmp").mkdirs();
+            installed = true;
+            listener.getLogger().println("Installed Jython runtime");
+        }
+        return installed;
+    }
     
     static void syncSitePackages(
             FilePath targetJythonHome, TaskListener listener)
@@ -74,11 +90,7 @@ public final class JythonPlugin extends Plugin {
     
     @Override
     public void start() throws Exception {
-        if (!JYTHON_HOME.child("jython.jar").exists()) {
-            JYTHON_HOME.unzipFrom(INSTALLER_URL.openStream());
-            JYTHON_HOME.child("jython").chmod(0755);
-            JYTHON_HOME.child("tmp").mkdirs();
-            LOG.info("Installed Jython runtime");
-        }
+        installJythonIfNecessary(
+            JYTHON_HOME, new LogTaskListener(LOG, Level.INFO));
     }
 }

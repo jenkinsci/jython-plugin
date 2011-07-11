@@ -24,12 +24,8 @@ public class JythonComputerListener extends ComputerListener {
             throws IOException, InterruptedException {
         final FilePath jythonHome = root.child("tools/jython");
         
-        if (!jythonHome.child("jython.jar").exists()) {
-            jythonHome.unzipFrom(JythonPlugin.INSTALLER_URL.openStream());
+        if (JythonPlugin.installJythonIfNecessary(jythonHome, listener)) {
             JythonPlugin.syncSitePackages(jythonHome, listener);
-            jythonHome.child("jython").chmod(0755);
-            jythonHome.child("tmp").mkdirs();
-            listener.getLogger().println("Installed Jython runtime");
         }
     }
 }
