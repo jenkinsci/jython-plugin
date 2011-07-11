@@ -50,7 +50,9 @@ public final class JythonPlugin extends Plugin {
         final FilePath tgtSitePkgs = targetJythonHome.child(SITE_PACKAGES_PATH);
         
         // Copying "easy-install.pth"
-        srcSitePkgs.child(EASY_INSTALL_FILENAME).copyTo(tgtSitePkgs);
+        srcSitePkgs.child(EASY_INSTALL_FILENAME).copyTo(
+            tgtSitePkgs.child(EASY_INSTALL_FILENAME));
+        logger.println("Copied " + EASY_INSTALL_FILENAME);
         // Copying new packages
         for (FilePath pkgSrc : srcSitePkgs.list()) {
             String pkgName = pkgSrc.getName();
