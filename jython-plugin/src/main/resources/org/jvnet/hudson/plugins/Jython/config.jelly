@@ -11,8 +11,16 @@
             overflow: auto;
           }
         </style>
-        <f:textarea name="jython" value="${instance.command != null ? instance.command : '# Do not edit before saving!'}"
+        <script type="text/javascript">
+          // hack/workaround to ensure newly added Jython script saves.
+          // TODO remove when hopefully the issue gets fixed in Jenkins.
+          function updateTextArea(editor) {
+            var srcTextArea = editor.getWrapperElement().previousSibling;
+            srcTextArea.value = editor.getValue()
+          }
+        </script>
+        <f:textarea name="jython" value="${instance.command}"
                     codemirror-mode="python"
-                    codemirror-config="'mode': 'text/x-python', 'lineNumbers': true, 'tabMode': 'shift'" />
+                    codemirror-config="'mode': 'text/x-python', 'lineNumbers': true, 'tabMode': 'shift', 'onChange': updateTextArea" />
     </f:entry>
 </j:jelly>
