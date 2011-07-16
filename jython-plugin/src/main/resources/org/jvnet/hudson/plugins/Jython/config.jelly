@@ -16,7 +16,12 @@
           // TODO remove when hopefully the issue gets fixed in Jenkins.
           function updateTextArea(editor) {
             var srcTextArea = editor.getWrapperElement().previousSibling;
-            srcTextArea.value = editor.getValue()
+            // another hack, to allow this build step to be removed
+            if (editor.getValue() != 'DELETE') {
+              srcTextArea.value = editor.getValue()
+            } else {
+              editor.toTextArea()
+            }
           }
         </script>
         <f:textarea name="jython" value="${instance.command}"
