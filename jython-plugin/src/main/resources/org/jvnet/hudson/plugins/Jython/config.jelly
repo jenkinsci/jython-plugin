@@ -1,7 +1,9 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <f:entry title="Script"
-             description="See &lt;a href='${rootURL}/env-vars.html' target=_new>the list of available environment variables&lt;/a>">
+  <f:entry title="Script"
+           description="See &lt;a href='${rootURL}/env-vars.html' target=_new>the list of available environment variables&lt;/a>">
+    <j:choose>
+      <j:when test="${descriptor.syntaxHighlightingEnabled}">
         <script type="text/javascript">
         <![CDATA[
           // TODO revisit - adds listeners to prepare syntax highlight editor
@@ -51,9 +53,18 @@
             overflow: auto;
           }
         </style>
-        <f:textarea name="jython" value="${instance.command}"
-                    codemirror-mode="python"
-                    codemirror-config="mode: 'text/x-python', indentUnit: 4, tabMode: 'shift', lineNumbers: true, onChange: updateTextArea, onFocus: addNodeRemovalListener" />
+        <j:choose>
+          <j:when test="${descriptor.tabKeyToIndentEnabled}">
+            <f:textarea name="jython" value="${instance.command}"
+                        codemirror-mode="python"
+                        codemirror-config="mode: 'text/x-python', indentUnit: ${descriptor.numSpacesPerIndentation}, tabMode: 'shift', lineNumbers: true, onChange: updateTextArea, onFocus: addNodeRemovalListener" />
+          </j:when>
+          <j:otherwise>
+            <f:textarea name="jython" value="${instance.command}"
+                        codemirror-mode="python"
+                        codemirror-config="mode: 'text/x-python', lineNumbers: true, onChange: updateTextArea, onFocus: addNodeRemovalListener" />
+          </j:otherwise>
+        </j:choose>
         <script type="text/javascript">
         <![CDATA[
           // TODO revisit - overrides CodeMirror#fromTextArea(...) to invoke
@@ -73,5 +84,10 @@
           }
         ]]>
         </script>
-    </f:entry>
+      </j:when>
+      <j:otherwise>
+        <f:textarea name="jython" value="${instance.command}" />
+      </j:otherwise>
+    </j:choose>
+  </f:entry>
 </j:jelly>
