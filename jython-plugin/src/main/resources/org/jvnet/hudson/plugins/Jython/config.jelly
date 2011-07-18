@@ -3,6 +3,8 @@
     <f:entry title="Script"
              description="See &lt;a href='${rootURL}/env-vars.html' target=_new>the list of available environment variables&lt;/a>">
         <script type="text/javascript">
+          // TODO revisit - adds listeners to prepare syntax highlight editor
+          // for build step removal, so that the project saves.
           addNodeRemovalListener = function(editor) {
             if (typeof editor.removeListenerAdded == 'undefined') {
               buildStepNode = editor.getWrapperElement().parentNode.parentNode.parentNode.parentNode.parentNode;
@@ -32,6 +34,8 @@
             }
           }
           
+          // TODO revisit - onChange listener to manually update the source
+          // <textarea> so that scripts in newly added build steps get saved.
           updateTextArea = function(editor) {
             editor.getWrapperElement().previousSibling.value=editor.getValue()
           }
@@ -49,6 +53,10 @@
                     codemirror-mode="python"
                     codemirror-config="'mode': 'text/x-python', 'lineNumbers': true, 'tabMode': 'shift', 'onFocus': addNodeRemovalListener, 'onChange': updateTextArea" />
         <script type="text/javascript">
+          // TODO revisit - overrides CodeMirror#fromTextArea(...) to invoke
+          // addNodeRemovalListener on new editors (applies to existing build
+          // steps in project - for new build steps, this is applied during the
+          // editors onFocus())
           if (typeof CodeMirror.hackApplied == 'undefined') {
             var origFromTextArea = CodeMirror.fromTextArea
             CodeMirror.fromTextArea = function(textArea, options) {
