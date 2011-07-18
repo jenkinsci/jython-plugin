@@ -59,6 +59,26 @@ public class Jython extends Builder {
             load();
         }
         
+        private boolean syntaxHighlightingEnabled = true;
+        
+        public boolean isSyntaxHighlightingEnabled() {
+            return syntaxHighlightingEnabled;
+        }
+        
+        private boolean tabKeyToIndentEnabled = true;
+        
+        public boolean isTabKeyToIndentEnabled() {
+            return tabKeyToIndentEnabled;
+        }
+
+        // From PEP 8 (http://www.python.org/dev/peps/pep-0008/) Code lay-out:
+        // "Use 4 spaces per indentation level."
+        private int numSpacesPerIndentation = 4;
+        
+        public int getNumSpacesPerIndentation() {
+            return numSpacesPerIndentation;
+        }
+        
         private String getPackageName(FilePath pkgInfo) {
             String name = null;
             final String NAME_PREFIX = "Name: ";
@@ -159,6 +179,14 @@ public class Jython extends Builder {
         @Override
         public boolean configure(StaplerRequest req, JSONObject json)
                 throws FormException {
+            syntaxHighlightingEnabled =
+                req.getParameter("syntaxHighlightingEnabled") != null;
+            tabKeyToIndentEnabled =
+                req.getParameter("tabKeyToIndentEnabled") != null;
+            numSpacesPerIndentation = Integer.parseInt(
+                req.getParameter("numSpacesPerIndentation"));
+            
+            // Process Python packages
             List<PythonPackage> newPythonPackages = req.bindParametersToList(
                 PythonPackage.class, "pythonPackage.");
             boolean packageListModified = false;
@@ -181,9 +209,9 @@ public class Jython extends Builder {
             if (packageListModified) {
                 pythonPackages = scanPackages();
                 lastModified = new Date();
-                save();
             }
             
+            save();
             return super.configure(req, json);
         }
         

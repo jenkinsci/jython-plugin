@@ -12,7 +12,25 @@
     so it should be straightforward to find them.
   -->
   <f:section title="Jython">
-    <f:entry title="Python Packages" description="Installing/removing packages may take several minutes">
+    <f:entry title="Editor"
+      description="Note that syntax highlighting is only available for versions of Jenkins that support it">
+      <table>
+        <f:optionalBlock name="syntaxHighlightingEnabled"
+          checked="${descriptor.syntaxHighlightingEnabled}"
+          title="Enable syntax highlighting">
+          <f:optionalBlock name="tabKeyToIndentEnabled"
+            checked="${descriptor.tabKeyToIndentEnabled}"
+            title="Tab key indents (if unchecked, the tab key inserts a tab character)">
+            <f:entry title="Number of spaces per indentation">
+	      <input class="setting-input" name="numSpacesPerIndentation"
+	        type="text" value="${descriptor.numSpacesPerIndentation}"/>
+	    </f:entry>
+          </f:optionalBlock>
+        </f:optionalBlock>
+       </table>
+    </f:entry>
+    <f:entry title="Python Packages"
+      description="Installing/removing packages may take several minutes">
       <f:repeatable name="pythonPackages" var="pythonPackage" items="${descriptor.pythonPackages}">
         <table width="100%">
           <j:if test="${pythonPackage != null}">
