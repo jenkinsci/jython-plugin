@@ -60,7 +60,8 @@
           // addNodeRemovalListener on new editors (applies to existing build
           // steps in project - for new build steps, this is applied during the
           // editors onFocus())
-          if (typeof CodeMirror.hackApplied == 'undefined') {
+          if (typeof CodeMirror != 'undefined' &&
+              typeof CodeMirror.hackApplied == 'undefined') {
             var origFromTextArea = CodeMirror.fromTextArea
             CodeMirror.fromTextArea = function(textArea, options) {
               var editor = origFromTextArea(textArea, options)
