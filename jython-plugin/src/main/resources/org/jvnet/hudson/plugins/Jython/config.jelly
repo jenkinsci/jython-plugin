@@ -53,7 +53,7 @@
         </style>
         <f:textarea name="jython" value="${instance.command}"
                     codemirror-mode="python"
-                    codemirror-config="'mode': 'text/x-python', 'lineNumbers': true, 'tabMode': 'shift', 'onFocus': addNodeRemovalListener, 'onChange': updateTextArea" />
+                    codemirror-config="mode: 'text/x-python', indentUnit: 4, tabMode: 'shift', lineNumbers: true, onChange: updateTextArea, onFocus: addNodeRemovalListener" />
         <script type="text/javascript">
         <![CDATA[
           // TODO revisit - overrides CodeMirror#fromTextArea(...) to invoke
