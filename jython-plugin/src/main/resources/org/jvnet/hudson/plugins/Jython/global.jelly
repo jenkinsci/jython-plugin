@@ -13,7 +13,7 @@
   -->
   <f:section title="Jython">
     <f:entry title="Editor"
-      description="Note that syntax highlighting is only available for versions of Jenkins that support it">
+      description="Syntax highlighting is only available on versions of Jenkins that support it. It is not available on Internet Explorer.">
       <table>
         <f:optionalBlock name="syntaxHighlightingEnabled"
           checked="${descriptor.syntaxHighlightingEnabled}"
@@ -30,7 +30,7 @@
        </table>
     </f:entry>
     <f:entry title="Python Packages"
-      description="Installing/removing packages may take several minutes">
+      description="Installing/removing packages may take several minutes.">
       <f:repeatable name="pythonPackages" var="pythonPackage" items="${descriptor.pythonPackages}">
         <table width="100%">
           <j:if test="${pythonPackage != null}">
