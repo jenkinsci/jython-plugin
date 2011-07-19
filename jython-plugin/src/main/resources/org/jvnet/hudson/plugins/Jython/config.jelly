@@ -3,14 +3,15 @@
   <f:entry title="Script"
            description="See &lt;a href='${rootURL}/env-vars.html' target=_new>the list of available environment variables&lt;/a>">
     <j:choose>
-      <j:when test="${descriptor.syntaxHighlightingEnabled}">
+      <j:when test="${descriptor.syntaxHighlightingEnabled &amp;&amp; !request.getHeader('User-Agent').contains('MSIE')}">
         <script type="text/javascript">
         <![CDATA[
           // TODO revisit - adds listeners to prepare syntax highlight editor
           // for build step removal, so that the project saves.
           addNodeRemovalListener = function(editor) {
             if (typeof editor.removeListenerAdded == 'undefined') {
-              buildStepNode = editor.getWrapperElement().parentNode.parentNode.parentNode.parentNode.parentNode;
+              var buildStepNode = editor.getWrapperElement().
+                parentNode.parentNode.parentNode.parentNode.parentNode;
               buildStepNode.dragging = false;
               buildStepNode.addEventListener(
                 "DOMNodeRemovedFromDocument",
