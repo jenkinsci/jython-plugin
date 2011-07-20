@@ -7,7 +7,9 @@
         <script type="text/javascript">
         <![CDATA[
           // TODO revisit - adds listeners to prepare syntax highlight editor
-          // for build step removal, so that the project saves.
+          // for build step removal (without this, the project won't save).
+          // This is invoked in two places - CodeMirror#fromTextArea(...) and
+          // when the editor's onFocus event occurs.
           addNodeRemovalListener = function(editor) {
             if (typeof editor.removeListenerAdded == 'undefined') {
               var buildStepNode = editor.getWrapperElement().
@@ -16,6 +18,10 @@
               buildStepNode.addEventListener(
                 "DOMNodeRemovedFromDocument",
                 function(event) {
+                  // Switch editor back to non-syntax highlighted mode when the
+                  // build step is removed.
+                  // However don't do this while the build step is being dragged
+                  // (i.e., when it's being re-ordered).
                   if (!buildStepNode.dragging) {
                     editor.toTextArea()
                   }
@@ -25,6 +31,7 @@
               buildStepNode.addEventListener(
                 "mousedown",
                 function(event) {
+                  // Indicates that this build step is being dragged.
                   buildStepNode.dragging = true
                 },
                 false
@@ -32,6 +39,7 @@
               buildStepNode.addEventListener(
                 "mouseup",
                 function(event) {
+                  // Indicates that this build step is no longer being dragged.
                   buildStepNode.dragging = false
                 },
                 false
