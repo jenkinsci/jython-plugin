@@ -58,6 +58,15 @@
     </plugins>
   </build>
   
+  <scm>
+    <connection>
+      scm:git:git://github.com/jenkinsci/jython-plugin.git
+    </connection>
+    <developerConnection>
+      scm:git:git@github.com:jenkinsci/jython-plugin.git
+    </developerConnection>
+    <url>http://github.com/jenkinsci/jython-plugin</url>
+  </scm>
   <developers>
     <developer>
       <id>jackgene</id>
