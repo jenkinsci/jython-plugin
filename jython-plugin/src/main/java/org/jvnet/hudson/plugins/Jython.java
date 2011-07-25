@@ -1,6 +1,5 @@
 package org.jvnet.hudson.plugins;
 
-import hudson.model.Descriptor.FormException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
