@@ -65,18 +65,9 @@
             overflow: auto;
           }
         </style>
-        <j:choose>
-          <j:when test="${descriptor.tabKeyToIndentEnabled}">
-            <f:textarea name="jython" value="${instance.command}"
-                        codemirror-mode="python"
-                        codemirror-config="mode: 'text/x-python', indentUnit: ${descriptor.numSpacesPerIndentation}, tabMode: 'shift', lineNumbers: true, onChange: updateTextArea, onFocus: addNodeRemovalListener" />
-          </j:when>
-          <j:otherwise>
-            <f:textarea name="jython" value="${instance.command}"
-                        codemirror-mode="python"
-                        codemirror-config="mode: 'text/x-python', lineNumbers: true, onChange: updateTextArea, onFocus: addNodeRemovalListener" />
-          </j:otherwise>
-        </j:choose>
+        <f:textarea name="jython" value="${instance.command}"
+                    codemirror-mode="python"
+                    codemirror-config="mode: 'text/x-python', indentUnit: ${descriptor.numSpacesPerIndentation}, tabMode: '${descriptor.tabKeyToIndentEnabled ? 'shift' : 'classic'}', lineNumbers: true, onChange: updateTextArea, onFocus: addNodeRemovalListener" />
         <script type="text/javascript">
         <![CDATA[
           // TODO revisit - overrides CodeMirror#fromTextArea(...) to invoke

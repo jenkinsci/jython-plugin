@@ -18,14 +18,15 @@
         <f:optionalBlock name="syntaxHighlightingEnabled"
           checked="${descriptor.syntaxHighlightingEnabled}"
           title="Enable syntax highlighting">
-          <f:optionalBlock name="tabKeyToIndentEnabled"
-            checked="${descriptor.tabKeyToIndentEnabled}"
-            title="Tab key indents (if unchecked, the tab key inserts a tab character)">
+          <f:block>
+            <f:checkbox name="tabKeyToIndentEnabled"
+              checked="${descriptor.tabKeyToIndentEnabled}" />
+            <label class="attach-previous">Tab key indents (if unchecked, the tab key inserts a tab character)</label>
             <f:entry title="Number of spaces per indentation">
-	      <input class="setting-input" name="numSpacesPerIndentation"
-	        type="text" value="${descriptor.numSpacesPerIndentation}"/>
-	    </f:entry>
-          </f:optionalBlock>
+              <f:textbox class="setting-input" name="numSpacesPerIndentation"
+                value="${descriptor.numSpacesPerIndentation}"/>
+            </f:entry>
+          </f:block>
         </f:optionalBlock>
        </table>
     </f:entry>
