@@ -9,7 +9,7 @@
   
   <artifactId>jython</artifactId>
   <packaging>hpi</packaging>
-  <version>1.8-SNAPSHOT</version>
+  <version>1.8</version>
   <name>Jython Plugin</name>
   
   <properties>
