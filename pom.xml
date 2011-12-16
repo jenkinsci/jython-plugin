@@ -4,7 +4,7 @@
   <groupId>org.jvnet.hudson.plugins</groupId>
   <artifactId>jython-plugin</artifactId>
   <packaging>pom</packaging>
-  <version>1.8</version>
+  <version>1.9-SNAPSHOT</version>
   <name>Jython Plugin Parent</name>
   
   <modules>
