@@ -1,26 +1,28 @@
 package org.jvnet.hudson.plugins;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.ProxyConfiguration;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
+import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.model.Node;
 import hudson.model.Result;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -254,6 +256,13 @@ public class Jython extends Builder {
         Map<String,String> envVar =
             new HashMap<String,String>(build.getEnvironment(listener));
         envVar.putAll(build.getBuildVariables());
+        if (!envVar.containsKey("http_proxy")) {
+            ProxyConfiguration proxy = Hudson.getInstance().proxy;
+            if (proxy != null) {
+                envVar.put(
+                    "http_proxy", "http://" + proxy.name + ":" + proxy.port);
+            }
+        }
         
         final String DEFAULT_JAVA_XMX = "-Xmx512m";
         String javaOpts = envVar.get("JAVA_OPTS");
